@@ -179,7 +179,9 @@ function neden(k){
   if(r.status==='ek_yok') return 'KAP bildiriminde rapor dosyası yok';
   if(r.status==='hata') return 'KAP dosyayı vermedi ('+(r.hata||'bağlantı hatası').slice(0,60)+'), sonraki yenilemede tekrar denenecek';
   if(r.status==='okunamadi') return 'Rapor dosyası var ama tablo formatı tanınmadı';
+  if(r.sonTaranmis) return `Son rapor (${r.sonTaranmis.donem}) taranmış görüntü; gösterilen veri ${r.eskiVeri?.donem||r.donem} raporundan${r.ocr||r.eskiVeri?.ocr?' (OCR ile okundu)':''}`;
   if(r.kalite==='iyi') return (r.ocr?'Taranmış rapor, OCR ile okundu':'Tam okundu')+' (toplam %'+fmtPct(r.toplamOran)+')';
+  if(r.ocr) return 'Taranmış rapor, OCR ile kısmen okundu (toplam %'+fmtPct(r.toplamOran)+'); bazı satırlar eksik olabilir';
   if(r.kalite==='fazla') return 'Okunan ağırlıklar toplamı %'+fmtPct(r.toplamOran)+', bazı satırlar iki kez sayılmış olabilir';
   return 'Kısmi okundu (toplam %'+fmtPct(r.toplamOran)+'), bazı satırlar kaçmış olabilir';
 }
@@ -291,7 +293,7 @@ function render(){
     summary = `${esc(rp.donem||'')} raporu, KAP'ta ${fmtDT(rp.yayin)} tarihinde yayımlandı. ${R.length} kalem, toplam ağırlık %${fmtPct(tw)}${f.buyukluk?`, fon büyüklüğü ${fmtTL(f.buyukluk)} TL`:''}. ${rp.idx?`<a href="${kapLink(rp.idx)}" target="_blank" rel="noopener">Raporu KAP'ta aç</a>`:''}${rp.kalite&&rp.kalite!=='iyi'?` <span class="flag">${KAL[rp.kalite]}</span>`:''}`;
     cols = [['kod','Kod'],['ad','Varlık'],['isin','ISIN'],['tur','Kalem türü'],['deger','Değer (TL)','num'],['oran','Ağırlık %','num']];
     if(!rp.idx || !(DB.satirlar?.[current.key]?.length)) summary = `${esc(neden(current.key))}.${f.buyukluk?` Fon büyüklüğü ${fmtTL(f.buyukluk)} TL.`:''}${rp.idx?` <a href="${kapLink(rp.idx)}" target="_blank" rel="noopener">Bildirimi KAP'ta aç</a>`:''}`;
-    else if(rp.kalite!=='iyi') summary += ` <span class="dim">${esc(neden(current.key))}.</span>`;
+    else if(rp.kalite!=='iyi' || rp.ocr || rp.sonTaranmis) summary += ` <span class="dim">${esc(neden(current.key))}.</span>`;
   }
   const cell=(r,k)=>{
     if(k==='oran') return `<div class="w"><span>${fmtPct(r.oran)}</span><span class="bartrack"><span class="bar" style="width:${Math.max(2,Math.abs(r.oran)/maxW*100)}%"></span></span></div>`;
