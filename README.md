@@ -82,6 +82,14 @@ Karşılaştırma aylık raporlayanlarda bir önceki ayla, haftalık raporlayanl
 BIST kodları tanımlanır; kurucunun kendi fonları otomatik bulunur. Yerli hisselerde endeks fonunun (DZE, BIST 100)
 ağırlığının üstündeki kısım ayrıca hesaplanır, çünkü endeks fonlarının grup hissesi tutması doğaldır.
 
+## Taranmış raporlar (OCR)
+
+Bazı fonlar portföy raporunu taranmış görüntü PDF olarak yayımlıyor (metin yok). Bunlar Netlify'da okunamaz;
+`.github/workflows/ocr.yml` hafta içi her sabah (10:17 İstanbul) GitHub'da çalışır: canlı siteden son raporu
+taranmış olan fonları bulur, KAP'tan indirip Tesseract ile (Türkçe) okur ve sonucu `data/ocr.json.gz`'ye yazar.
+Repoya kayıt siteyi yeniden yükletir; site OCR sonucunu ilgili fonun raporu hâlâ o taranmış raporsa uygular.
+Elle çalıştırmak için: GitHub → Actions → "Taranmış raporlar (OCR)" → Run workflow. İki kez okunamayan rapor tekrar denenmez.
+
 ## Fon evreni
 
 TEFAS'ta işlem gören fonlar **ve** TEFAS listesinde olup KAP'ta portföy dağılım raporu yayımlayan fonlar.

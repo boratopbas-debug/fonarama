@@ -1,0 +1,36 @@
+name: Taranmış raporlar (OCR)
+# Son portföy raporu taranmış PDF olan fonları OCR ile okur, data/ocr.json.gz'yi günceller.
+# Repoya kayıt Netlify'ın siteyi yeniden yüklemesini tetikler; site OCR sonucunu otomatik uygular.
+on:
+  schedule:
+    - cron: "17 7 * * 1-5"   # hafta içi 10:17 İstanbul
+  workflow_dispatch: {}
+permissions:
+  contents: write
+concurrency:
+  group: ocr
+  cancel-in-progress: false
+jobs:
+  ocr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: OCR araçları
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr tesseract-ocr-tur poppler-utils
+      - run: npm ci --no-audit --no-fund
+      - name: OCR
+        run: node scripts/ocr-ci.mjs
+      - name: Kaydet
+        run: |
+          if git diff --quiet -- data/ocr.json.gz && git ls-files --error-unmatch data/ocr.json.gz >/dev/null 2>&1; then echo "Değişiklik yok"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ocr.json.gz
+          git commit -m "OCR: taranmış raporlar güncellendi"
+          git pull --rebase -q origin "${GITHUB_REF_NAME}"
+          git push
