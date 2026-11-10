@@ -52,6 +52,36 @@ siteyi kendiliğinden yeniden yükler. Hafta içi 2 saatte bir kendiliğinden ç
 Elle çalıştırmak için: GitHub → Actions → "Verileri yenile" → Run workflow (1–3 dk).
 Site, repodaki veri ile Netlify Blobs'taki veriden hangisi daha yeniyse onu gösterir.
 
+## Fon araştırma ekranları
+
+- **Fon → içerik** sayfası artık şunları da gösterir:
+  - **Röntgen:** kalem sayısı ve etkin pozisyon (1/HHI), ilk 10 kalem, en büyük kalem, döviz ve altın maruziyeti,
+    yerli hisse kısmında BIST 100'e göre **active share** ve BIST 100 dışı hisse payı, ilişkili taraf payı.
+  - **Kırmızı bayraklar:** yoğunlaşma (borçlanma araçlarında ihraççı bazında), ilişkili taraf (kurucunun grup
+    şirketleri ve grup bankasındaki mevduat), kategori uyumu, endekse yakınlık, likidite, ani değişim, veri kalitesi.
+  - **Önceki rapora göre değişim:** yeni girenler, çıkanlar, artanlar, azalanlar ve devir oranı; Excel'e aktarılabilir.
+  - **İzlemeye al:** fon bu tarayıcıdaki izleme listesine eklenir.
+- **Varlık → fonlar** sayfasında önceki rapora göre o varlığa giren / çıkan / artıran / azaltan fonlar.
+- **Karşılaştır:** en fazla 4 fon; içerik çakışması (ortak kalemlerde küçük ağırlıkların toplamı), yan yana özet, kalem kalem tablo.
+- **Değişimler ve bayraklar:** tüm fonlarda (ya da izleme listesinde / bir kurucuda) en çok fonun girdiği ve çıktığı
+  kalemler, portföyünü en çok değiştiren fonlar ve bayrak taraması; hepsi Excel'e aktarılabilir.
+
+Karşılaştırma aylık raporlayanlarda bir önceki ayla, haftalık raporlayanlarda ~4 hafta öncesiyle yapılır
+(fon sayfasında başka bir önceki rapor seçilebilir).
+
+### Geçmiş raporlar
+
+- Her yenilemede, yerine yeni rapor gelen fonun eski satırları Netlify Blobs'taki `gecmis.json.gz`'ye yazılır
+  (fon başına en fazla 6 rapor). Sayfa bunu `/api/gecmis`'ten ayrıca yükler.
+- `data/gecmis.json.gz`: KAP'tan geriye dönük taranmış önceki raporlar (her fon için önceki 3 rapor). Site ikisini birleştirir.
+  Yeniden oluşturmak için: `DB_FILE=<canlı veri .json.gz> node scripts/backfill-gecmis.mjs`
+
+### İlişkili taraf eşlemesi
+
+`public/gruplar.json` kurucu → grup şirketleri eşlemesidir (taslak, düzeltilebilir). Kalem adında aranan ifadeler ve
+BIST kodları tanımlanır; kurucunun kendi fonları otomatik bulunur. Yerli hisselerde endeks fonunun (DZE, BIST 100)
+ağırlığının üstündeki kısım ayrıca hesaplanır, çünkü endeks fonlarının grup hissesi tutması doğaldır.
+
 ## Fon evreni
 
 TEFAS'ta işlem gören fonlar **ve** TEFAS listesinde olup KAP'ta portföy dağılım raporu yayımlayan fonlar.

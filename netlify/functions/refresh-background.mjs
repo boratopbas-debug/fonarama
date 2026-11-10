@@ -1,6 +1,6 @@
 // Arka plan fonksiyonu (15 dk'ya kadar çalışır). Butonla ya da günlük zamanlayıcıyla tetiklenir.
 // İş bitmezse kendini yeniden başlatır (en fazla MAX_TUR tur).
-import { loadDb, saveDb, getStatus, setStatus } from "../../lib/store.mjs";
+import { loadDb, saveDb, getStatus, setStatus, loadGecmis, saveGecmis } from "../../lib/store.mjs";
 import { refresh } from "../../lib/pipeline.mjs";
 const MAX_TUR = 8;
 
@@ -34,15 +34,18 @@ export default async (req) => {
   await setStatus({ durum: "calisiyor", baslangic, tur, toplamYeni: oncekiYeni, mesaj: tur === 1 ? "KAP ve TEFAS kontrol ediliyor" : `Devam ediliyor (tur ${tur})` });
   try {
     const db = await loadDb();
+    const gecmis = await loadGecmis(db);
     const { db: out, stats } = await refresh(db, {
+      gecmis,
       concurrency: 3, deadlineMs: 12 * 60e3,
       log: m => { log.push(m); if (log.length > 40) log.shift(); },
       onProgress: async (p, d) => {
         await setStatus({ durum: "calisiyor", baslangic, tur, toplamYeni: oncekiYeni + p.done, mesaj: `Raporlar işleniyor: ${p.done}/${p.total}${tur > 1 ? ` (tur ${tur})` : ""}`, ...p });
-        if (p.done % 150 === 0) await saveDb(d); // ara kayıt
+        if (p.done % 150 === 0) { await saveDb(d); await saveGecmis(gecmis); } // ara kayıt
       }
     });
     await saveDb(out);
+    await saveGecmis(gecmis);
     const toplamYeni = oncekiYeni + stats.yeni;
     if (stats.kalan > 0 && tur < MAX_TUR) {
       await setStatus({ durum: "calisiyor", baslangic, tur: tur + 1, toplamYeni, mesaj: `${toplamYeni} rapor işlendi, ${stats.kalan} kaldı, devam ediliyor` });

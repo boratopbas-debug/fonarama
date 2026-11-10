@@ -81,6 +81,38 @@ details.cov summary{cursor:pointer;font-weight:600;color:var(--ink)}
 details.cov table{min-width:560px;font-size:13px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
 .toast.show{opacity:1}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tl{font-size:12px;color:var(--muted);font-weight:600}
+.tv{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:2px}
+.th{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cols4{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+h3{font-size:15px;margin:0 0 8px}
+table.mini{min-width:0;font-size:13.5px}
+table.mini td,table.mini th{padding:6px 10px}
+table.mini .bartrack{width:70px}
+.up{color:var(--bar);font-weight:600}
+.down{color:var(--accent);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+.chip{display:inline-flex;gap:6px;align-items:center;font-size:13px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.chip.up{color:var(--bar)} .chip.down{color:var(--accent)}
+.chip.sel{font-weight:600;padding:4px 6px 4px 12px}
+.chip .x{border:0;padding:0 6px;font-size:16px;line-height:1;background:transparent;color:var(--muted)}
+.searchbox.inl{display:inline-block;min-width:260px}
+.searchbox.inl input{font-size:15px;font-weight:500;padding:8px 12px;border-width:1px}
+ul.flags{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ul.flags li{background:var(--surface);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:9px 12px;font-size:14px}
+ul.flags li b{margin-right:6px}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:6px;margin-right:8px;background:var(--bar-soft);color:var(--bar);white-space:nowrap}
+li.sev-y{border-left-color:var(--accent)} li.sev-o{border-left-color:var(--warn)} li.sev-b{border-left-color:var(--line)}
+.sev-y .pill,.pill.sev-y{background:var(--accent);color:#fff}
+.sev-o .pill,.pill.sev-o{background:var(--warn-soft);color:var(--warn)}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px}
+.note ul{margin:0;padding-left:18px} .note li{margin:4px 0}
+.note a,.chips a,ul.flags a,.empty a{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none}
+#btnIzle[aria-pressed="true"]{border-color:var(--warn);color:var(--warn)}
+@media (max-width:760px){.cols,.cols4{grid-template-columns:1fr}.mode{display:flex;flex-wrap:wrap}.mode button{flex:1 1 auto}}
 @media (max-width:640px){.status{text-align:left}.src{justify-content:flex-start}}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
 </style>
@@ -90,7 +122,7 @@ details.cov table{min-width:560px;font-size:13px}
   <header>
     <div>
       <h1>Hangi fonda ne var?</h1>
-      <p class="sub">ISIN, hisse kodu ya da şirket adı yaz; TEFAS'taki yatırım fonlarından (banka şubesinden satılanlar dahil) hangilerinin tuttuğunu ve fon içindeki ağırlığını gör. Kaynak: fonların KAP'taki en güncel portföy dağılım raporları.</p>
+      <p class="sub">ISIN, hisse kodu ya da şirket adı yaz; TEFAS'taki yatırım fonlarından (banka şubesinden satılanlar dahil) hangilerinin tuttuğunu ve fon içindeki ağırlığını gör. Fon sayfasında içeriğin röntgeni, kırmızı bayraklar ve önceki rapora göre değişim; ayrıca fonları karşılaştırma ve tüm fonlarda değişim özeti. Kaynak: fonların KAP'taki portföy dağılım raporları.</p>
     </div>
     <div class="src">
       <button id="btnRefresh" class="primary">Verileri yenile</button>
@@ -102,12 +134,14 @@ details.cov table{min-width:560px;font-size:13px}
   <div class="mode" role="group" aria-label="Arama türü">
     <button id="mAsset" aria-pressed="true">Varlık → fonlar</button>
     <button id="mFund" aria-pressed="false">Fon → içerik</button>
+    <button id="mCmp" aria-pressed="false">Karşılaştır</button>
+    <button id="mOz" aria-pressed="false">Değişimler ve bayraklar</button>
   </div>
-  <div class="searchbox">
+  <div class="searchbox" id="mainSearch">
     <input id="q" type="search" autocomplete="off" placeholder="TRATHYAO91M5 veya THYAO" aria-label="Arama" disabled>
     <div class="sugg" id="sugg" role="listbox"></div>
   </div>
-  <div class="filters">
+  <div class="filters" id="mainFilters">
     <label>Min. ağırlık % <select id="minw"><option value="0">Hepsi</option><option value="0.1">0,1</option><option value="0.5">0,5</option><option value="1">1</option><option value="2">2</option><option value="5">5</option></select></label>
     <label>Kalem türü <select id="turf"><option value="">Hepsi</option></select></label>
     <label class="chk"><input type="checkbox" id="onlyGood"> Sadece tam okunan raporlar</label>
@@ -221,6 +255,7 @@ async function loadData(){
     DB = await new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).json();
     index(); fillTurFilter(); refreshStatus(); render(); renderCoverage();
     $('#q').disabled=false; $('#btnExportAll').disabled=false;
+    GEC_YUK=null; loadGecmis();
   }catch(e){ setStatus('Veri alınamadı: '+e.message,'err'); render(); }
 }
 function fillTurFilter(){
@@ -233,23 +268,29 @@ function fillTurFilter(){
 // son eki at, böylece aynı hisse tek satırda birleşir
 const KOD_EK = /^([A-ZÇĞİÖŞÜ0-9]{3,6})\.(E|F)$/;
 const turCache = new Map();
+let isinToKod = {};
+function normRow(fon, [isin0,kod1,ad,tur,oran,deger]){
+  const map = DB.eslesme||{};
+  let kod0 = kod1;
+  const mk = KOD_EK.exec((kod0||'').trim()) || (!kod0 && KOD_EK.exec((ad||'').trim()));
+  if(mk) kod0 = mk[1];
+  const isin = isin0 || (kod0 && map[kod0]) || '';
+  const kod = kod0 || (isin && isinToKod[isin]) || '';
+  const key = isin || (kod ? 'K:'+kod : 'A:'+TR(ad));
+  const tk = (tur||'')+'\u0001'+isin+'\u0001'+kod+'\u0001'+(ad||'');
+  let nt = turCache.get(tk); if(nt===undefined){ nt=normTur(tur, isin, kod, ad); turCache.set(tk,nt); }
+  return {fon, isin, kod, ad, tur: nt, turHam: tur||'', oran, deger, key};
+}
 function index(){
   funds = DB.fonlar||{}; const map = DB.eslesme||{};
-  const isinToKod = {}; for(const [k,i] of Object.entries(map)) isinToKod[i]=k;
-  rows=[]; secs=new Map();
+  isinToKod = {}; for(const [k,i] of Object.entries(map)) isinToKod[i]=k;
+  rows=[]; secs=new Map(); byFund=new Map(); statCache.clear();
   for(const [fon, list] of Object.entries(DB.satirlar||{})){
     const f=funds[fon]; if(!f) continue;
-    for(const [isin0,kod1,ad,tur,oran,deger] of list){
-      let kod0 = kod1;
-      const mk = KOD_EK.exec((kod0||'').trim()) || (!kod0 && KOD_EK.exec((ad||'').trim()));
-      if(mk) kod0 = mk[1];
-      const isin = isin0 || (kod0 && map[kod0]) || '';
-      const kod = kod0 || (isin && isinToKod[isin]) || '';
-      const key = isin || (kod ? 'K:'+kod : 'A:'+TR(ad));
-      const tk = (tur||'')+'\u0001'+isin+'\u0001'+kod+'\u0001'+(ad||'');
-      let nt = turCache.get(tk); if(nt===undefined){ nt=normTur(tur, isin, kod, ad); turCache.set(tk,nt); }
-      const r = {fon, isin, kod, ad, tur: nt, turHam: tur||'', oran, deger, key};
-      rows.push(r);
+    const fr=[]; byFund.set(fon, fr);
+    for(const raw of list){
+      const r = normRow(fon, raw); const {key, isin, kod, ad} = r;
+      rows.push(r); fr.push(r);
       let s = secs.get(key);
       if(!s){ s={key, isin, kod, names:{}, rows:[]}; secs.set(key,s); }
       if(!s.kod && kod) s.kod=kod;
@@ -314,9 +355,10 @@ function poll(){
 fetch('/api/status',{cache:'no-store'}).then(r=>r.json()).then(st=>{ if(st.durum==='calisiyor'){ $('#btnRefresh').disabled=true; poll(); } }).catch(()=>{});
 
 // ---------- arama ----------
-function setMode(m){ mode=m; $('#mAsset').setAttribute('aria-pressed',m==='asset'); $('#mFund').setAttribute('aria-pressed',m==='fund');
+function pressMode(m){ [['mAsset','asset'],['mFund','fund'],['mCmp','compare'],['mOz','ozet']].forEach(([id,v])=>$('#'+id).setAttribute('aria-pressed',m===v)); const ara=m==='asset'||m==='fund'; $('#mainSearch').style.display=ara?'':'none'; $('#mainFilters').style.display=ara?'':'none'; }
+function setMode(m){ mode=m; pressMode(m); if(m==='compare'||m==='ozet'){ current=null; render(); return; }
   $('#q').placeholder = m==='asset' ? 'TRATHYAO91M5 veya THYAO' : 'Fon kodu veya fon adı'; $('#q').value=''; current=null; render(); $('#q').focus(); }
-$('#mAsset').onclick=()=>setMode('asset'); $('#mFund').onclick=()=>setMode('fund');
+$('#mAsset').onclick=()=>setMode('asset'); $('#mFund').onclick=()=>setMode('fund'); $('#mCmp').onclick=()=>setMode('compare'); $('#mOz').onclick=()=>setMode('ozet');
 $('#minw').onchange=()=>render(); $('#turf').onchange=()=>render(); $('#onlyGood').onchange=()=>{ ONLY_GOOD=$('#onlyGood').checked; render(); };
 
 let sel=-1, list=[];
@@ -341,7 +383,7 @@ function suggest(){
 }
 function pick(i){ const x=list[i]; if(!x) return; go(mode, x.key); }
 function go(m, key){
-  mode=m; $('#mAsset').setAttribute('aria-pressed',m==='asset'); $('#mFund').setAttribute('aria-pressed',m==='fund');
+  mode=m; pressMode(m);
   current={type:m,key}; const s = m==='asset'? secs.get(key) : null;
   $('#q').value = m==='asset' ? (s?.kod||s?.isin||s?.ad||'') : key;
   $('#sugg').classList.remove('open'); sel=-1; sortKey='oran'; sortDir=-1; render();
@@ -367,9 +409,11 @@ function resultRows(){
 function render(){
   const out=$('#out');
   if(!DB){ out.innerHTML=''; return; }
+  if(mode==='compare'){ renderCompare(out); return; }
+  if(mode==='ozet'){ renderOzet(out); return; }
   if(!current){
     const ns=secs.size, nf=fundList.length;
-    out.innerHTML = `<div class="empty"><h3>${mode==='asset'?'Bir varlık ara':'Bir fon ara'}</h3><p>${mode==='asset'?`${ns.toLocaleString('tr-TR')} farklı varlık`:`${nf.toLocaleString('tr-TR')} fon`} aranabilir.</p></div>`; return;
+    out.innerHTML = `<div class="empty"><h3>${mode==='asset'?'Bir varlık ara':'Bir fon ara'}</h3><p>${mode==='asset'?`${ns.toLocaleString('tr-TR')} farklı varlık`:`${nf.toLocaleString('tr-TR')} fon`} aranabilir.${mode==='fund'?' Fon sayfasında röntgen, kırmızı bayraklar ve önceki rapora göre değişim de var.':''}</p>${mode==='fund'&&IZLE.size?`<p>İzleme listen: ${[...IZLE].filter(k=>funds[k]).map(k=>`<a data-fund="${esc(k)}" tabindex="0">${esc(k)}</a>`).join(', ')}</p>`:''}</div>`; bindLinks(out); return;
   }
   const R = resultRows().slice();
   R.forEach(r=>{ const f=funds[r.fon]||{}; r.fonAdi=f.ad||''; r.donem=f.rapor?.donem||''; r.buyukluk=f.buyukluk; });
@@ -424,6 +468,8 @@ function render(){
       out.appendChild(sec);
     }
   }
+  if(current.type==='fund') renderFundExtras(out, current.key);
+  if(current.type==='asset') renderAssetMoves(out, current.key);
   // varlık görünümü: detay yayımlamayıp hisse tutan fonlar
   if(current.type==='asset'){
     const s=secs.get(current.key)||{};
@@ -467,6 +513,419 @@ $('#btnExportAll').onclick=()=>{
   XLSX.utils.book_append_sheet(wb, sheet(fl,[10,50,16,10,12,20,10,12,10,60,12,40]), 'Fonlar');
   XLSX.writeFile(wb, `fon_icerik_${(DB.guncelleme||'').slice(0,10)}.xlsx`);
 };
+
+// ================= ANALİZ: fon röntgeni, değişim, karşılaştırma, bayraklar, özet =================
+// (index.html içindeki ana betiğe eklenir; DB, rows, funds, secs, KT, normRow ... ile aynı kapsamda çalışır)
+let byFund = new Map(), GEC = null, GEC_YUK = null, GRUP = {}, BENCH = null;
+const statCache = new Map();
+const NONSEC = new Set([KT.repo, KT.tpp, KT.mev, KT.kh, KT.tem, KT.dig]);
+const DEVLET = new Set([KT.dt, KT.kksK, KT.repo, KT.tpp]);
+const FONTUR = new Set([KT.fonTR, KT.fonYB, KT.byfTR, KT.byfYB]);
+const BENCH_FON = 'DZE'; // BIST 100 endeks fonu: active share ve "BIST 100 dışı" ölçümünde endeksin yerine geçer
+const FX_TEFAS = ['yhs','eut','kibd','osdb','kba','vmd','khd','kksd','kksyd','oksyd','ymk','yba','ybkb','ybosb','ybyf','dot','db'];
+const AU_TEFAS = ['km','kmbyf','kmkba','kmkks','vmau','khau'];
+const FX_TUR = new Set([KT.hisYB, KT.fonYB, KT.byfYB, KT.ebTR, KT.ebYB]);
+const diffKey = r => (!r.isin && NONSEC.has(r.tur)) ? 'T:' + r.tur : r.key;
+const sum = a => a.reduce((s, x) => s + x, 0);
+const kurucuOf = ad => ((ad || '').match(/^(.*?PORTF[ÖO]Y)/) || [, ''])[1].replace(/\s+/g, ' ').trim();
+const fmtD = n => (n > 0 ? '+' : '') + fmtPct(n);
+const nameOf = x => secs.get(x.secKey)?.ad || x.ad || '';
+const lbl = x => x.kod || nameOf(x).slice(0, 26) || '—';
+const TOPLAM_SATIR = /ARA GRUP|ARA TOPLAM|^TOPLAM|GENEL TOPLAM|\bT\.?\s?REPO\b|TERS REPO/;
+const BORC = new Set([KT.osb, KT.kksO, KT.ebTR, KT.ebYB, KT.vdmk]);
+const ihracci = x => fold(nameOf(x)).replace(/[^A-Z0-9 ]/g, ' ').replace(/\b(TRY|TL|USD|EUR|DVZ|KRS|OST|FB|TAHVIL|BONO|KIRA|SERTIFIKA\w*)\b/g, ' ').trim().split(/\s+/).slice(0, 2).join(' ');
+const yabKamu = x => /UNITED STAT|US TREASURY|TREASURY BILL|T BILL|BUNDESREPUBLIK|GOVERNMENT|GOVT/.test(fold(x.ad));
+const kamuEB = x => yabKamu(x) || x.tur === KT.ebTR && (/^US900123/.test(x.isin || '') || /HAZINE|T\.?\s?C\.?\s|TURKIYE CUMHURIYETI|REPUBLIC OF TURKEY|TURKIYE VARLIK|HAZINE MUSTESARLIGI/.test(fold(x.ad)));
+const MEVTUR = new Set([KT.mev, KT.kh]);
+const endeksFonu = fon => /ENDEKS/.test(fold(funds[fon]?.ad));
+
+// ---------- izleme listesi (tarayıcıda) ----------
+let IZLE = new Set();
+try { IZLE = new Set(JSON.parse(localStorage.getItem('fonara_izle') || '[]')); } catch {}
+const izleKaydet = () => { try { localStorage.setItem('fonara_izle', JSON.stringify([...IZLE])); } catch {} };
+
+// ---------- yardımcı veriler ----------
+fetch('gruplar.json').then(r => r.ok ? r.json() : {}).then(j => { GRUP = j || {}; statCache.clear(); if (current || mode !== 'asset') render(); }).catch(() => {});
+function loadGecmis() {
+  if (GEC_YUK) return GEC_YUK;
+  GEC_YUK = fetch('/api/gecmis', { cache: 'no-store' }).then(async r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await new Response(r.body.pipeThrough(new DecompressionStream('gzip'))).json();
+    GEC = {};
+    for (const [fon, list] of Object.entries(j.fonlar || {})) GEC[fon] = list.map(s => ({ ...s, rows: s.rows.map(x => normRow(fon, x)) }));
+    statCache.clear(); render();
+  }).catch(e => { GEC = {}; console.warn('geçmiş alınamadı', e); render(); });
+  return GEC_YUK;
+}
+function bench() {
+  if (BENCH) return BENCH;
+  const rs = (byFund.get(BENCH_FON) || []).filter(r => r.tur === KT.hisTR && r.oran > 0);
+  const t = sum(rs.map(r => r.oran)) || 1, w = new Map();
+  for (const r of rs) w.set(r.key, (w.get(r.key) || 0) + r.oran / t * 100);
+  return (BENCH = w);
+}
+
+// ---------- tek fonun röntgeni ----------
+function agg(list) { // diffKey bazında topla
+  const m = new Map();
+  for (const r of list) { const k = diffKey(r); const x = m.get(k); if (x) x.w += r.oran; else m.set(k, { k, w: r.oran, ad: r.ad, kod: r.kod, isin: r.isin, tur: r.tur, secKey: r.key }); }
+  return m;
+}
+function iliskili(fon, list) {
+  const kur = kurucuOf(funds[fon]?.ad), g = GRUP[kur] || null, kurF = fold(kur);
+  const kodSet = new Set(g?.kod || []), adRe = (g?.ad || []).map(s => fold(s));
+  const grup = [], kendi = [];
+  for (const r of list) {
+    if (r.oran <= 0 || DEVLET.has(r.tur)) continue;
+    const A = fold(r.ad);
+    if (FONTUR.has(r.tur) && kurF && (A.startsWith(kurF) || A.includes(kurF))) { kendi.push(r); continue; }
+    if (TOPLAM_SATIR.test(A)) continue;
+    if ((r.kod && kodSet.has(r.kod)) || adRe.some(s => A.includes(s))) grup.push(r);
+  }
+  const mevW = sum(grup.filter(r => MEVTUR.has(r.tur) || (!r.isin && NONSEC.has(r.tur))).map(r => r.oran));
+  // yerli hisselerde endeks ağırlığının üstündeki kısım (endeks fonunun grup hissesi tutması doğal)
+  const B = bench(), hisT = sum(list.filter(r => r.tur === KT.hisTR).map(r => r.oran));
+  const fazla = sum(grup.map(r => r.tur === KT.hisTR ? Math.max(0, r.oran - (B.get(r.key) || 0) * hisT / 100) : r.oran));
+  return { kurucu: kur, grupAd: g?.grup || '', tanimli: !!g, grup, kendi, grupW: sum(grup.map(r => r.oran)), fazlaW: fazla, mevW, ihracW: fazla - mevW, kendiW: sum(kendi.map(r => r.oran)) };
+}
+function stats(fon, list = byFund.get(fon) || [], tefas = DB.dagilim?.[fon]?.d) {
+  const ck = fon + '|' + (list === byFund.get(fon) ? 'cur' : 'x');
+  if (ck.endsWith('cur') && statCache.has(ck)) return statCache.get(ck);
+  const total = sum(list.map(r => r.oran));
+  const a = [...agg(list).values()];
+  const sec = a.filter(x => !NONSEC.has(x.tur) && !DEVLET.has(x.tur) && !kamuEB(x) && x.tur !== KT.km && x.tur !== KT.tur && !TOPLAM_SATIR.test(fold(x.ad))).sort((x, y) => y.w - x.w);
+  const all = a.slice().sort((x, y) => y.w - x.w);
+  const hhi = sum(a.filter(x => x.w > 0).map(x => (x.w / (total || 100)) ** 2));
+  const tur = {}; for (const r of list) tur[r.tur] = (tur[r.tur] || 0) + r.oran;
+  const hisTR = tur[KT.hisTR] || 0, hisYB = tur[KT.hisYB] || 0;
+  // active share (yerli hisse kısmı, BIST 100 fonuna göre)
+  let as = null, disi = null;
+  const B = bench();
+  if (hisTR >= 20 && B.size && fon !== BENCH_FON) {
+    const eq = a.filter(x => x.tur === KT.hisTR && x.w > 0), te = sum(eq.map(x => x.w)) || 1;
+    const fw = new Map(eq.map(x => [x.secKey, x.w / te * 100]));
+    const keys = new Set([...fw.keys(), ...B.keys()]);
+    as = sum([...keys].map(k => Math.abs((fw.get(k) || 0) - (B.get(k) || 0)))) / 2;
+    disi = sum([...fw].filter(([k]) => !B.has(k)).map(([, w]) => w));
+  }
+  const fx = tefas ? sum(FX_TEFAS.map(k => tefas[k] || 0)) : sum([...FX_TUR].map(t => tur[t] || 0));
+  const au = tefas ? sum(AU_TEFAS.map(k => tefas[k] || 0)) : (tur[KT.km] || 0);
+  const il = iliskili(fon, list);
+  const res = { total, n: list.length, top10: sum(all.slice(0, 10).map(x => x.w)), etkin: hhi ? 1 / hhi : 0, maxSec: sec[0] || null, sec, tur, hisTR, hisYB, as, disi, fx, au, fxKaynak: tefas ? 'TEFAS' : 'rapor', il };
+  if (ck.endsWith('cur')) statCache.set(ck, res);
+  return res;
+}
+
+// ---------- aydan aya fark ----------
+function prevSnaps(fon) { return (GEC?.[fon] || []); }
+function diff(fon, snap, curList = byFund.get(fon) || []) {
+  if (!snap) return null;
+  const c = agg(curList), p = agg(snap.rows);
+  const tc = sum([...c.values()].map(x => x.w)), tp = sum([...p.values()].map(x => x.w));
+  const nc = tc > 80 && tc < 120 ? 100 / tc : 1, np = tp > 80 && tp < 120 ? 100 / tp : 1; // kısmi okumaları ölçekle
+  const keys = new Set([...c.keys(), ...p.keys()]), out = [];
+  for (const k of keys) {
+    const x = c.get(k), y = p.get(k), w1 = (x?.w || 0) * nc, w0 = (y?.w || 0) * np;
+    const b = x || y;
+    out.push({ k, secKey: b.secKey, ad: b.ad, kod: b.kod, isin: b.isin, tur: b.tur, w0, w1, d: w1 - w0, durum: !y ? 'yeni' : !x ? 'cikti' : w1 - w0 > 0.005 ? 'artti' : w1 - w0 < -0.005 ? 'azaldi' : 'ayni' });
+  }
+  const devir = sum(out.filter(o => !NONSEC.has(o.tur)).map(o => Math.abs(o.d))) / 2;
+  const turD = {};
+  for (const o of out) turD[o.tur] = (turD[o.tur] || 0) + o.d;
+  const nC = [...c.values()].filter(x => !NONSEC.has(x.tur)).length, nP = [...p.values()].filter(x => !NONSEC.has(x.tur)).length;
+  const supheli = nP >= 5 && nC < 0.4 * nP && devir > 60; // satırların çoğu kaybolmuş: büyük ihtimalle rapor formatı / okuma sorunu
+  return { snap, rows: out, devir, turD, supheli, nC, nP, gun: Math.round((new Date(funds[fon]?.rapor?.eskiVeri?.yayin || funds[fon]?.rapor?.yayin) - new Date(snap.yayin)) / 864e5) };
+}
+// ~1 ay önceki rapor (haftalık raporlayanlarda 4 hafta öncesine en yakın), yoksa bir önceki
+function aylikSnap(fon) {
+  const L = prevSnaps(fon); if (!L.length) return null;
+  const rp = funds[fon]?.rapor; if (!/Hafta/.test(rp?.donem || '')) return L[0];
+  const t0 = new Date(rp.eskiVeri?.yayin || rp.yayin).getTime();
+  return L.reduce((b, s) => { const x = Math.abs(t0 - new Date(s.yayin).getTime() - 28 * 864e5); return !b || x < b.x ? { s, x } : b; }, null).s;
+}
+
+// ---------- kırmızı bayraklar ----------
+const SEV = { y: 'Yüksek', o: 'Orta', b: 'Bilgi' };
+function flags(fon) {
+  const f = funds[fon] || {}, rp = f.rapor, list = byFund.get(fon) || [];
+  if (!list.length) return [];
+  const s = stats(fon), A = fold(f.ad), out = [];
+  const add = (sev, tip, metin) => out.push({ sev, tip, metin });
+  const sepet = /FON SEPETI/.test(A);
+  // tek kalem yoğunlaşması (devlet, repo, mevduat hariç)
+  if (rp?.kalite !== 'fazla') { // toplamı %100'ü aşan (yanlış okunmuş olabilecek) raporlarda ölçme
+    // borçlanma araçlarında ihraççı bazında, diğerlerinde kalem bazında
+    const G = new Map();
+    for (const x of s.sec) { if (sepet && FONTUR.has(x.tur)) continue; const ih = BORC.has(x.tur) ? ihracci(x) : ''; const k = ih ? 'I:' + ih : 'K:' + x.k; const g = G.get(k) || { w: 0, n: 0, x }; g.w += x.w; g.n++; G.set(k, g); }
+    const big = [...G.values()].filter(g => g.w > 10).sort((a, b) => b.w - a.w);
+    big.slice(0, 3).forEach(g => add(endeksFonu(fon) ? 'b' : g.w > 20 ? 'y' : 'o', 'Yoğunlaşma', g.n > 1 ? `Tek ihraççı %${fmtPct(g.w)} (${g.n} kalem): ${nameOf(g.x)} (${g.x.tur})` : `Tek kalem %${fmtPct(g.w)}: ${g.x.kod ? g.x.kod + ' ' : ''}${nameOf(g.x)} (${g.x.tur})`));
+    if (big.length > 3) add('b', 'Yoğunlaşma', `%10'u aşan ${big.length - 3} kalem/ihraççı daha var`);
+  }
+  // ilişkili taraf
+  const il = s.il;
+  if (il.grupW > 0) {
+    const sevI = endeksFonu(fon) || il.ihracW < 1 ? 'b' : il.ihracW >= 5 ? 'y' : 'o', sevM = il.mevW >= 25 ? 'y' : il.mevW >= 10 ? 'o' : 'b';
+    const sev = ({ y: 0, o: 1, b: 2 }[sevI] <= { y: 0, o: 1, b: 2 }[sevM]) ? sevI : sevM;
+    add(sev, 'İlişkili taraf', `Kurucunun grubuna (${il.grupAd}) ait kalemler toplam %${fmtPct(il.grupW)}${il.mevW >= 0.01 ? ` (mevduat/katılım hesabı %${fmtPct(il.mevW)}, menkul kıymet %${fmtPct(il.grupW - il.mevW)})` : ''}${Math.abs(il.fazlaW - il.grupW) > 0.05 ? `; hisselerde BIST 100 ağırlığının üstündeki kısım dikkate alınınca %${fmtPct(il.fazlaW)}` : ''}: ${il.grup.slice().sort((a, b) => b.oran - a.oran).slice(0, 4).map(r => (r.kod || r.ad) + ' %' + fmtPct(r.oran)).join(', ')}`);
+  }
+  if (il.kendiW >= 1 && !sepet) add('b', 'İlişkili taraf', `Kurucunun kendi fonları toplam %${fmtPct(il.kendiW)}`);
+  // kategori uyumu
+  const T = DB.dagilim?.[fon]?.d, hisse = T ? (T.hs || 0) + (T.yhs || 0) : s.hisTR + s.hisYB;
+  const serbest = /SERBEST|DEGISKEN|KARMA|FON SEPETI/.test(A);
+  if (/HISSE SENEDI YOGUN|HISSE SENEDI FONU/.test(A) && !serbest && hisse < 75) add('o', 'Kategori uyumu', `Adı hisse senedi fonu ama hisse payı %${fmtPct(hisse)} (hisse yoğun fonlarda en az %80 beklenir)`);
+  if (/PARA PIYASASI/.test(A) && hisse > 0.5) add('y', 'Kategori uyumu', `Para piyasası fonunda %${fmtPct(hisse)} hisse`);
+  if (/BORCLANMA ARACLARI/.test(A) && !serbest && hisse > 20) add('o', 'Kategori uyumu', `Borçlanma araçları fonunda %${fmtPct(hisse)} hisse`);
+  if (/ALTIN|KIYMETLI MADEN/.test(A) && !serbest && s.au < 75) add('o', 'Kategori uyumu', `Adı altın / kıymetli maden fonu ama altın payı %${fmtPct(s.au)}`);
+  // endekse yakınlık ve likidite
+  if (s.as != null && s.as < 20 && !/ENDEKS/.test(A)) add('o', 'Endekse yakınlık', `Yerli hisse kısmının active share'i %${fmtPct(s.as)}: BIST 100'e çok yakın, aktif yönetim farkı sınırlı olabilir`);
+  if (s.disi != null && s.disi >= 40 && s.hisTR >= 20) add('b', 'Likidite', `Yerli hisselerin %${fmtPct(s.disi)}'i BIST 100 dışında: küçük/orta ölçekli hisselerin likiditesini kontrol et`);
+  // önceki rapora göre değişim
+  const d = diff(fon, aylikSnap(fon));
+  if (d?.supheli) add('b', 'Veri', `Son raporda ${d.nC} kalem okundu, önceki raporda ${d.nP}: rapor formatı değişmiş ya da eksik okunmuş olabilir, değişim ölçümleri güvenilmez`);
+  else if (d) {
+    if (d.devir >= 50) add('o', 'Ani değişim', `Portföyün %${fmtPct(d.devir)}'i ${d.snap.donem} raporuna göre değişmiş`);
+    for (const [t, v] of Object.entries(d.turD)) if (Math.abs(v) >= 15) add('o', 'Ani değişim', `${t} payı ${d.snap.donem} raporuna göre ${fmtD(v)} puan`);
+  }
+  // veri kalitesi
+  if (rp && rp.kalite && rp.kalite !== 'iyi') add('b', 'Veri', `Rapor ${KAL[rp.kalite]?.toLowerCase() || 'kısmi okundu'} (toplam %${fmtPct(rp.toplamOran)}); ölçümler eksik olabilir`);
+  if (rp?.yayin && Date.now() - new Date(rp.eskiVeri?.yayin || rp.yayin) > 50 * 864e5) add('b', 'Veri', `Gösterilen rapor ${Math.round((Date.now() - new Date(rp.eskiVeri?.yayin || rp.yayin)) / 864e5)} gün önce yayımlanmış`);
+  const ord = { y: 0, o: 1, b: 2 };
+  return out.sort((a, b) => ord[a.sev] - ord[b.sev]);
+}
+
+// ---------- görünüm parçaları ----------
+const tile = (l, v, h = '') => `<div class="tile"><div class="tl">${l}</div><div class="tv">${v}</div>${h ? `<div class="th">${h}</div>` : ''}</div>`;
+const barRow = (l, v, mx, extra = '') => `<tr><td>${l}</td><td class="num"><div class="w"><span>${fmtPct(v)}</span><span class="bartrack"><span class="bar" style="width:${Math.max(2, Math.abs(v) / (mx || 1) * 100)}%"></span></span></div></td>${extra}</tr>`;
+const secLink = (key, txt) => `<a data-sec="${esc(key)}" tabindex="0">${esc(txt)}</a>`;
+const fonLink = k => `<a data-fund="${esc(k)}" tabindex="0">${esc(k)}</a>`;
+const flagHtml = fl => fl.length ? `<ul class="flags">${fl.map(x => `<li class="sev-${x.sev}"><span class="pill">${SEV[x.sev]}</span><b>${esc(x.tip)}</b> ${esc(x.metin)}</li>`).join('')}</ul>` : '<p class="dim">Belirgin bir uyarı yok.</p>';
+function bindLinks(root) {
+  root.querySelectorAll('a[data-fund]').forEach(a => { const f = () => { go('fund', a.dataset.fund); scrollTo({ top: 0 }); }; a.onclick = f; a.onkeydown = e => { if (e.key === 'Enter') f(); }; });
+  root.querySelectorAll('a[data-sec]').forEach(a => { const f = () => { if (secs.has(a.dataset.sec)) { go('asset', a.dataset.sec); scrollTo({ top: 0 }); } }; a.onclick = f; a.onkeydown = e => { if (e.key === 'Enter') f(); }; });
+}
+
+let diffSel = {}; // fon → seçili önceki rapor idx
+function renderFundExtras(out, fon) {
+  const list = byFund.get(fon) || []; if (!list.length) return;
+  if (!GEC) loadGecmis();
+  const s = stats(fon), fl = flags(fon);
+  const box = document.createElement('div');
+  const turL = Object.entries(s.tur).filter(([, v]) => Math.abs(v) >= 0.01).sort((a, b) => b[1] - a[1]);
+  const mxT = Math.max(...turL.map(x => Math.abs(x[1])), 1);
+  const top = s.sec.slice(0, 10), mxS = Math.max(...top.map(x => x.w), 1);
+  const il = s.il;
+  box.innerHTML = `
+  <section class="result"><div class="rhead"><div><h2 style="font-size:19px">Röntgen</h2><p>Son okunan rapordan hesaplanır. Devlet borçlanma araçları, repo, TPP ve mevduat yoğunlaşma ölçümlerine katılmaz.</p></div>
+    <button id="btnIzle" aria-pressed="${IZLE.has(fon)}">${IZLE.has(fon) ? '★ İzleniyor' : '☆ İzlemeye al'}</button></div>
+    <div class="tiles">
+      ${tile('Kalem sayısı', s.n.toLocaleString('tr-TR'), `etkin pozisyon ≈ ${s.etkin.toFixed(1).replace('.', ',')}`)}
+      ${tile('İlk 10 kalem', '%' + fmtPct(s.top10), 'tüm kalemler içinde')}
+      ${tile('En büyük kalem', s.maxSec ? '%' + fmtPct(s.maxSec.w) : '—', s.maxSec ? esc(lbl(s.maxSec).slice(0, 28)) : 'devlet/repo dışı')}
+      ${tile('Döviz maruziyeti', '%' + fmtPct(s.fx), s.fxKaynak === 'TEFAS' ? 'TEFAS dağılımından' : 'rapordan, yaklaşık')}
+      ${s.au >= 0.5 ? tile('Altın / kıymetli maden', '%' + fmtPct(s.au)) : ''}
+      ${s.as != null ? tile('Active share', '%' + fmtPct(s.as), 'yerli hisse kısmı, BIST 100\'e göre') : ''}
+      ${s.disi != null ? tile('BIST 100 dışı hisse', '%' + fmtPct(s.disi), 'yerli hisselerin içinde') : ''}
+      ${tile('İlişkili taraf', il.tanimli ? '%' + fmtPct(il.grupW) : '—', il.tanimli ? esc(il.grupAd) + (il.kendiW >= 0.01 ? ` · kendi fonları %${fmtPct(il.kendiW)}` : '') : 'kurucu için grup tanımı yok')}
+    </div>
+    <div class="cols">
+      <div><h3>Kalem türü dağılımı</h3><div class="tablewrap"><table class="mini"><tbody>${turL.map(([t, v]) => barRow(esc(t), v, mxT)).join('')}</tbody></table></div></div>
+      <div><h3>En büyük 10 kalem <span class="dim">(devlet/repo/mevduat hariç)</span></h3><div class="tablewrap"><table class="mini"><tbody>${top.map(x => barRow(`${secLink(x.secKey, lbl(x))} <span class="name dim">${esc(x.kod ? nameOf(x).slice(0, 40) : '')}</span>`, x.w, mxS)).join('') || '<tr><td class="dim">Yok</td></tr>'}</tbody></table></div></div>
+    </div>
+  </section>
+  <section class="result"><div class="rhead"><div><h2 style="font-size:19px">Kırmızı bayraklar</h2><p>Otomatik kontroller; kesin hüküm değil, bakılması gereken yerleri gösterir.</p></div></div>${flagHtml(fl)}</section>
+  <section class="result" id="diffSec"></section>`;
+  const mainSec = out.querySelector('section.result'); mainSec.querySelector('.rhead').after(box); const h = document.createElement('h2'); h.style.cssText = 'font-size:19px;margin:28px 0 12px'; h.textContent = 'İçerik'; box.after(h);
+  box.querySelector('#btnIzle').onclick = () => { IZLE.has(fon) ? IZLE.delete(fon) : IZLE.add(fon); izleKaydet(); render(); };
+  renderDiff(box.querySelector('#diffSec'), fon);
+  bindLinks(box);
+}
+function renderDiff(el, fon) {
+  if (!GEC) { el.innerHTML = '<div class="rhead"><div><h2 style="font-size:19px">Önceki rapora göre değişim</h2><p>Geçmiş raporlar yükleniyor…</p></div></div>'; return; }
+  const L = prevSnaps(fon);
+  if (!L.length) { el.innerHTML = '<div class="rhead"><div><h2 style="font-size:19px">Önceki rapora göre değişim</h2><p>Bu fonun önceki raporu henüz arşivde yok. Yeni raporlar geldikçe arşiv dolar.</p></div></div>'; return; }
+  const def = aylikSnap(fon), selIdx = diffSel[fon] || def.idx, snap = L.find(s => s.idx === selIdx) || def;
+  const d = diff(fon, snap);
+  const grp = { yeni: [], cikti: [], artti: [], azaldi: [] };
+  for (const o of d.rows) if (grp[o.durum] && !NONSEC.has(o.tur) && Math.max(Math.abs(o.w0), Math.abs(o.w1)) >= 0.005) grp[o.durum].push(o);
+  grp.yeni.sort((a, b) => b.w1 - a.w1); grp.cikti.sort((a, b) => b.w0 - a.w0); grp.artti.sort((a, b) => b.d - a.d); grp.azaldi.sort((a, b) => a.d - b.d);
+  const tbl = (title, L2, kind) => `<div><h3>${title} <span class="dim">(${L2.length})</span></h3><div class="tablewrap"><table class="mini"><thead><tr><th>Kalem</th><th class="num">Önce</th><th class="num">Şimdi</th><th class="num">Fark</th></tr></thead><tbody>${L2.slice(0, 12).map(o => `<tr><td>${secLink(o.secKey, lbl(o))} <span class="name dim">${esc(o.kod ? nameOf(o).slice(0, 34) : '')}</span></td><td class="num">${fmtPct(o.w0)}</td><td class="num">${fmtPct(o.w1)}</td><td class="num ${o.d > 0 ? 'up' : 'down'}">${fmtD(o.d)}</td></tr>`).join('') || '<tr><td colspan="4" class="dim">Yok</td></tr>'}${L2.length > 12 ? `<tr><td colspan="4" class="dim">+${L2.length - 12} kalem daha (Excel'de tam liste)</td></tr>` : ''}</tbody></table></div></div>`;
+  const turL = Object.entries(d.turD).filter(([, v]) => Math.abs(v) >= 0.5).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  el.innerHTML = `<div class="rhead"><div><h2 style="font-size:19px">Önceki rapora göre değişim</h2>
+    <p>Karşılaştırılan rapor: <select id="snapSel">${L.map(s => `<option value="${s.idx}" ${s.idx === snap.idx ? 'selected' : ''}>${esc(s.donem)} (${fmtDT(s.yayin).slice(0, 10)})</option>`).join('')}</select>
+    · ${d.gun} gün${d.supheli ? ` · <span class="flag">Son raporda ${d.nC}, öncekinde ${d.nP} kalem var; okuma sorunu olabilir</span>` : ''} · <b>portföyün %${fmtPct(d.devir)}'i değişmiş</b> <span class="dim">(devlet/repo/mevduat hariç ağırlık farklarının yarısı)</span></p></div>
+    <button id="btnDiffX">Değişimi Excel'e aktar</button></div>
+    ${turL.length ? `<p class="chips">${turL.map(([t, v]) => `<span class="chip ${v > 0 ? 'up' : 'down'}">${esc(t)} ${fmtD(v)}</span>`).join('')}</p>` : ''}
+    <div class="cols4">${tbl('Yeni girenler', grp.yeni)}${tbl('Çıkanlar', grp.cikti)}${tbl('Ağırlığı artanlar', grp.artti)}${tbl('Ağırlığı azalanlar', grp.azaldi)}</div>`;
+  el.querySelector('#snapSel').onchange = e => { diffSel[fon] = +e.target.value; render(); };
+  el.querySelector('#btnDiffX').onclick = () => {
+    const wb = XLSX.utils.book_new();
+    const DL = { yeni: 'Yeni', cikti: 'Çıktı', artti: 'Arttı', azaldi: 'Azaldı', ayni: 'Aynı' };
+    XLSX.utils.book_append_sheet(wb, sheet(d.rows.sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).map(o => ({ 'Durum': DL[o.durum], 'Varlık Kodu': o.kod, 'Varlık Adı': o.ad, 'ISIN': o.isin, 'Kalem Türü': o.tur, [`Önce (%) ${snap.donem}`]: +o.w0.toFixed(4), [`Şimdi (%) ${funds[fon]?.rapor?.donem || ''}`]: +o.w1.toFixed(4), 'Fark (puan)': +o.d.toFixed(4) })), [10, 12, 40, 15, 24, 16, 16, 12]), 'Değişim');
+    XLSX.writeFile(wb, `${fon}_degisim.xlsx`);
+  };
+  bindLinks(el);
+}
+
+// ---------- karşılaştırma ----------
+let CMP = [];
+try { CMP = JSON.parse(localStorage.getItem('fonara_cmp') || '[]'); } catch {}
+const cmpKaydet = () => { try { localStorage.setItem('fonara_cmp', JSON.stringify(CMP)); } catch {} };
+let cmpOnlyCommon = false;
+function overlap(a, b) { const A = agg(byFund.get(a) || []), B = agg(byFund.get(b) || []); let o = 0; for (const [k, x] of A) { if (NONSEC.has(x.tur)) continue; const y = B.get(k); if (y) o += Math.min(Math.max(x.w, 0), Math.max(y.w, 0)); } return o; }
+function renderCompare(out) {
+  const valid = CMP.filter(k => funds[k]);
+  const funds_ = valid.map(k => ({ k, m: agg(byFund.get(k) || []) }));
+  let body = '';
+  if (valid.length >= 2) {
+    const pairs = [];
+    for (let i = 0; i < valid.length; i++) for (let j = i + 1; j < valid.length; j++) pairs.push([valid[i], valid[j], overlap(valid[i], valid[j])]);
+    const U = new Map();
+    for (const { k, m } of funds_) for (const [key, x] of m) { if (NONSEC.has(x.tur)) continue; const u = U.get(key) || { ...x, w: {} }; u.w[k] = x.w; U.set(key, u); }
+    let urows = [...U.values()].map(u => ({ ...u, n: Object.keys(u.w).length, mx: Math.max(...Object.values(u.w)) }));
+    if (cmpOnlyCommon) urows = urows.filter(u => u.n === valid.length);
+    urows.sort((a, b) => b.n - a.n || b.mx - a.mx);
+    const turs = [...new Set(funds_.flatMap(({ k }) => Object.keys(stats(k).tur)))].map(t => ({ t, v: valid.map(k => stats(k).tur[t] || 0) })).filter(x => x.v.some(v => Math.abs(v) >= 0.5)).sort((a, b) => Math.max(...b.v) - Math.max(...a.v));
+    body = `
+    <section class="result"><div class="rhead"><div><h2 style="font-size:19px">İçerik çakışması</h2><p>Ortak kalemlerde iki fonun ağırlıklarından küçük olanların toplamı. %100'e yaklaştıkça iki fon aynı portföyü tutuyor demektir. Repo, TPP ve mevduat hariç.</p></div></div>
+    <div class="tiles">${pairs.map(([a, b, o]) => tile(`${esc(a)} ↔ ${esc(b)}`, '%' + fmtPct(o))).join('')}</div></section>
+    <section class="result"><div class="rhead"><div><h2 style="font-size:19px">Yan yana özet</h2></div></div>
+    <div class="tablewrap"><table><thead><tr><th>Ölçü</th>${valid.map(k => `<th class="num">${fonLink(k)}</th>`).join('')}</tr></thead><tbody>
+      ${[['Rapor', k => esc(funds[k]?.rapor?.donem || '')], ['Büyüklük (mn TL)', k => fmtTL((funds[k]?.buyukluk || 0) / 1e6)], ['Kalem sayısı', k => stats(k).n], ['İlk 10 kalem %', k => fmtPct(stats(k).top10)], ['Etkin pozisyon', k => stats(k).etkin.toFixed(1).replace('.', ',')], ['Döviz maruziyeti %', k => fmtPct(stats(k).fx)], ['Active share %', k => stats(k).as == null ? '—' : fmtPct(stats(k).as)], ['İlişkili taraf %', k => stats(k).il.tanimli ? fmtPct(stats(k).il.grupW) : '—'], ['Bayrak (yüksek/orta)', k => { const f = flags(k); return `${f.filter(x => x.sev === 'y').length} / ${f.filter(x => x.sev === 'o').length}`; }]]
+        .map(([l, fn]) => `<tr><td>${l}</td>${valid.map(k => `<td class="num">${fn(k)}</td>`).join('')}</tr>`).join('')}
+      ${turs.map(x => `<tr><td class="dim">${esc(x.t)} %</td>${x.v.map(v => `<td class="num dim">${fmtPct(v)}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div></section>
+    <section class="result"><div class="rhead"><div><h2 style="font-size:19px">Kalem kalem</h2><p>${urows.length} kalem${cmpOnlyCommon ? ', sadece hepsinde ortak olanlar' : ''}. Repo, TPP ve mevduat hariç.</p></div>
+      <div class="src"><label class="chk"><input type="checkbox" id="cmpCommon" ${cmpOnlyCommon ? 'checked' : ''}> Sadece hepsinde ortak</label><button id="btnCmpX" class="primary">Excel'e aktar</button></div></div>
+    <div class="tablewrap"><table><thead><tr><th>Kod</th><th>Varlık</th><th>Tür</th>${valid.map(k => `<th class="num">${esc(k)} %</th>`).join('')}</tr></thead><tbody>
+      ${urows.slice(0, 300).map(u => `<tr><td>${secLink(u.secKey, u.kod || '—')}</td><td class="name">${esc(nameOf(u))}</td><td class="dim">${esc(u.tur)}</td>${valid.map(k => `<td class="num ${u.w[k] == null ? 'dim' : ''}">${u.w[k] == null ? '—' : fmtPct(u.w[k])}</td>`).join('')}</tr>`).join('')}
+      ${urows.length > 300 ? `<tr><td colspan="${3 + valid.length}" class="dim">+${urows.length - 300} kalem daha (Excel'de tam liste)</td></tr>` : ''}
+    </tbody></table></div></section>`;
+    setTimeout(() => {
+      const c = $('#cmpCommon'); if (c) c.onchange = () => { cmpOnlyCommon = c.checked; render(); };
+      const x = $('#btnCmpX'); if (x) x.onclick = () => {
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, sheet(urows.map(u => ({ 'Varlık Kodu': u.kod, 'Varlık Adı': u.ad, 'ISIN': u.isin, 'Kalem Türü': u.tur, ...Object.fromEntries(valid.map(k => [k + ' (%)', u.w[k] ?? null])) })), [12, 40, 15, 24, ...valid.map(() => 10)]), 'Kalemler');
+        XLSX.utils.book_append_sheet(wb, sheet(pairs.map(([a, b, o]) => ({ 'Fon 1': a, 'Fon 2': b, 'Çakışma (%)': +o.toFixed(2) })), [10, 10, 12]), 'Çakışma');
+        XLSX.writeFile(wb, `karsilastirma_${valid.join('_')}.xlsx`);
+      };
+    });
+  }
+  out.innerHTML = `<section class="result"><div class="rhead"><div><h2>Fonları karşılaştır</h2><p>En fazla 4 fon seç. Seçim bu tarayıcıda hatırlanır.</p></div></div>
+    <div class="chips">${valid.map(k => `<span class="chip sel">${esc(k)} <span class="dim">${esc((funds[k]?.ad || '').slice(0, 30))}</span> <button class="x" data-rm="${esc(k)}" aria-label="${esc(k)} çıkar">×</button></span>`).join('')}
+    ${valid.length < 4 ? `<span class="searchbox inl"><input id="cmpQ" type="search" autocomplete="off" placeholder="Fon ekle: kod veya ad"><div class="sugg" id="cmpSugg" role="listbox"></div></span>` : ''}
+    ${IZLE.size ? `<button id="cmpIzle">İzleme listemden ekle</button>` : ''}</div>
+    ${valid.length < 2 ? '<div class="empty"><h3>En az iki fon seç</h3><p>Çakışma oranı, yan yana özet ve kalem kalem karşılaştırma burada görünür.</p></div>' : ''}</section>${body}`;
+  out.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { CMP = CMP.filter(k => k !== b.dataset.rm); cmpKaydet(); render(); });
+  const ci = $('#cmpIzle'); if (ci) ci.onclick = () => { CMP = [...new Set([...CMP, ...IZLE])].filter(k => funds[k]).slice(0, 4); cmpKaydet(); render(); };
+  const q = $('#cmpQ');
+  if (q) {
+    let L = [], si = -1;
+    const show = () => {
+      const t = TR(q.value), box = $('#cmpSugg');
+      if (!t) { box.classList.remove('open'); return; }
+      L = fundList.filter(f => !CMP.includes(f.key) && (TR(f.key).startsWith(t) || f.adL.includes(t))).sort((a, b) => (TR(b.key) === t) - (TR(a.key) === t) || (TR(b.key).startsWith(t)) - (TR(a.key).startsWith(t))).slice(0, 10);
+      box.innerHTML = L.map((f, i) => `<div role="option" data-i="${i}" aria-selected="${i === si}"><span><b>${esc(f.key)}</b> ${esc(f.ad)}</span><small>${f.n ? f.n + ' kalem' : 'rapor yok'}</small></div>`).join('') || '<div class="dim">Eşleşen fon yok</div>';
+      box.classList.add('open');
+      box.querySelectorAll('[data-i]').forEach(d => d.onmousedown = e => { e.preventDefault(); addF(+d.dataset.i); });
+    };
+    const addF = i => { const f = L[i]; if (!f) return; CMP = [...CMP, f.key].slice(0, 4); cmpKaydet(); render(); setTimeout(() => $('#cmpQ')?.focus()); };
+    q.oninput = () => { si = -1; show(); };
+    q.onkeydown = e => { if (e.key === 'ArrowDown') { si = Math.min(si + 1, L.length - 1); show(); e.preventDefault(); } else if (e.key === 'ArrowUp') { si = Math.max(si - 1, 0); show(); e.preventDefault(); } else if (e.key === 'Enter') addF(si >= 0 ? si : 0); };
+    q.onblur = () => setTimeout(() => $('#cmpSugg')?.classList.remove('open'), 120);
+  }
+  bindLinks(out);
+}
+
+// ---------- değişim özeti ve bayrak taraması ----------
+let OZ = { kapsam: 'tum', kurucu: '', bayrak: '', sev: 'yo' };
+function renderOzet(out) {
+  if (!GEC) { loadGecmis(); out.innerHTML = '<div class="empty"><h3>Geçmiş raporlar yükleniyor…</h3></div>'; return; }
+  let keys = Object.keys(funds).filter(k => byFund.get(k)?.length);
+  if (OZ.kapsam === 'izle') keys = keys.filter(k => IZLE.has(k));
+  if (OZ.kurucu) keys = keys.filter(k => kurucuOf(funds[k].ad) === OZ.kurucu);
+  const kurs = [...new Set(Object.values(funds).map(f => kurucuOf(f.ad)).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr'));
+  // fon bazında değişim
+  const D = [];
+  for (const k of keys) { const s = aylikSnap(k); if (!s) continue; const d = diff(k, s); if (d && !d.supheli) D.push({ k, d }); }
+  // varlık bazında: kaç fon yeni girdi / çıktı (sadece menkul kıymetler)
+  const V = new Map();
+  for (const { k, d } of D) for (const o of d.rows) {
+    if (NONSEC.has(o.tur) || DEVLET.has(o.tur) || (o.durum !== 'yeni' && o.durum !== 'cikti') || Math.max(Math.abs(o.w0), Math.abs(o.w1)) < 0.01) continue;
+    const v = V.get(o.k) || { ...o, giren: [], cikan: [], net: 0 };
+    if (o.durum === 'yeni') v.giren.push(k); else v.cikan.push(k);
+    v.net += o.d; V.set(o.k, v);
+  }
+  const VL = [...V.values()];
+  const giris = VL.filter(v => v.giren.length).sort((a, b) => b.giren.length - a.giren.length || b.net - a.net).slice(0, 15);
+  const cikis = VL.filter(v => v.cikan.length).sort((a, b) => b.cikan.length - a.cikan.length || a.net - b.net).slice(0, 15);
+  const devir = D.slice().sort((a, b) => b.d.devir - a.d.devir).slice(0, 20);
+  // bayraklar
+  const F = [];
+  for (const k of keys) for (const f of flags(k)) if (OZ.sev.includes(f.sev) && (!OZ.bayrak || f.tip === OZ.bayrak)) F.push({ k, ...f });
+  const tipler = ['Yoğunlaşma', 'İlişkili taraf', 'Kategori uyumu', 'Endekse yakınlık', 'Likidite', 'Ani değişim', 'Veri'];
+  const ord = { y: 0, o: 1, b: 2 };
+  F.sort((a, b) => ord[a.sev] - ord[b.sev] || (funds[b.k]?.buyukluk || 0) - (funds[a.k]?.buyukluk || 0));
+  const nY = F.filter(f => f.sev === 'y').length;
+  const vtbl = (L2, side) => `<div class="tablewrap"><table class="mini"><thead><tr><th>Kalem</th><th class="num">Fon</th><th>Fonlar</th></tr></thead><tbody>${L2.map(v => { const fl = side === 'g' ? v.giren : v.cikan; return `<tr><td>${secLink(v.secKey, lbl(v))} <span class="name dim">${esc(v.kod ? nameOf(v).slice(0, 30) : '')}</span></td><td class="num">${fl.length}</td><td class="dim">${fl.slice(0, 6).map(fonLink).join(', ')}${fl.length > 6 ? ' …' : ''}</td></tr>`; }).join('') || '<tr><td colspan="3" class="dim">Yok</td></tr>'}</tbody></table></div>`;
+  const ozetMadde = [];
+  if (D.length) ozetMadde.push(`${D.length} fonun son raporu bir önceki dönemle karşılaştırıldı; ortanca devir %${fmtPct(D.map(x => x.d.devir).sort((a, b) => a - b)[Math.floor(D.length / 2)])}.`);
+  if (giris[0]) ozetMadde.push(`En çok fonun yeni girdiği kalem: <b>${esc(lbl(giris[0]))}</b> (${giris[0].giren.length} fon)${giris[1] ? `, ardından ${esc(lbl(giris[1]))} (${giris[1].giren.length})` : ''}.`);
+  if (cikis[0]) ozetMadde.push(`En çok fonun çıktığı kalem: <b>${esc(lbl(cikis[0]))}</b> (${cikis[0].cikan.length} fon).`);
+  if (devir[0]) ozetMadde.push(`Portföyünü en çok değiştiren: ${fonLink(devir[0].k)} (%${fmtPct(devir[0].d.devir)}).`);
+  ozetMadde.push(`${nY} yüksek önemli bayrak${OZ.bayrak ? ` (${esc(OZ.bayrak)})` : ''}.`);
+  out.innerHTML = `<section class="result"><div class="rhead"><div><h2>Değişimler ve bayraklar</h2><p>Her fonun son raporu, aylık raporlayanlarda bir önceki ayla, haftalık raporlayanlarda ~4 hafta öncesiyle karşılaştırılır.</p></div>
+    <div class="src"><button id="btnOzX" class="primary">Excel'e aktar</button></div></div>
+    <div class="filters" style="margin:0 0 14px">
+      <label>Kapsam <select id="ozK"><option value="tum">Tüm fonlar</option><option value="izle" ${OZ.kapsam === 'izle' ? 'selected' : ''}>İzleme listem (${IZLE.size})</option></select></label>
+      <label>Kurucu <select id="ozKur"><option value="">Hepsi</option>${kurs.map(k => `<option ${OZ.kurucu === k ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select></label>
+    </div>
+    <div class="note"><ul>${ozetMadde.map(m => `<li>${m}</li>`).join('')}</ul></div></section>
+    <section class="result"><div class="cols"><div><h3>En çok fonun yeni girdiği kalemler</h3>${vtbl(giris, 'g')}</div><div><h3>En çok fonun çıktığı kalemler</h3>${vtbl(cikis, 'c')}</div></div></section>
+    <section class="result"><h3>Portföyünü en çok değiştiren fonlar</h3><div class="tablewrap"><table class="mini"><thead><tr><th>Fon</th><th>Fon adı</th><th>Karşılaştırılan</th><th class="num">Devir %</th><th>En büyük hareket</th></tr></thead><tbody>
+      ${devir.map(({ k, d }) => { const m = d.rows.filter(o => !NONSEC.has(o.tur)).sort((a, b) => Math.abs(b.d) - Math.abs(a.d))[0]; return `<tr><td>${fonLink(k)}</td><td class="name">${esc(funds[k].ad)}</td><td class="dim">${esc(d.snap.donem)} → ${esc(funds[k].rapor?.donem || '')}</td><td class="num">${fmtPct(d.devir)}</td><td>${m ? `${esc(lbl(m))} <span class="${m.d > 0 ? 'up' : 'down'}">${fmtD(m.d)}</span>` : ''}</td></tr>`; }).join('') || '<tr><td colspan="5" class="dim">Karşılaştırılabilir rapor yok</td></tr>'}
+    </tbody></table></div></section>
+    <section class="result"><div class="rhead"><div><h3 style="margin:0">Bayrak taraması</h3><p>${F.length} bayrak, ${new Set(F.map(f => f.k)).size} fon. Büyük fonlar üstte.</p></div>
+      <div class="filters" style="margin:0"><label>Tür <select id="ozB"><option value="">Hepsi</option>${tipler.map(t => `<option ${OZ.bayrak === t ? 'selected' : ''}>${t}</option>`).join('')}</select></label>
+      <label>Önem <select id="ozS"><option value="y" ${OZ.sev === 'y' ? 'selected' : ''}>Yüksek</option><option value="yo" ${OZ.sev === 'yo' ? 'selected' : ''}>Yüksek + orta</option><option value="yob" ${OZ.sev === 'yob' ? 'selected' : ''}>Hepsi</option></select></label></div></div>
+    <div class="tablewrap"><table><thead><tr><th>Fon</th><th>Fon adı</th><th>Önem</th><th>Tür</th><th>Açıklama</th></tr></thead><tbody>
+      ${F.slice(0, 400).map(f => `<tr><td>${fonLink(f.k)}</td><td class="name">${esc(funds[f.k]?.ad || '')}</td><td><span class="pill sev-${f.sev}">${SEV[f.sev]}</span></td><td>${esc(f.tip)}</td><td>${esc(f.metin)}</td></tr>`).join('') || '<tr><td colspan="5" class="dim">Bayrak yok</td></tr>'}
+      ${F.length > 400 ? `<tr><td colspan="5" class="dim">+${F.length - 400} bayrak daha (Excel'de tam liste)</td></tr>` : ''}
+    </tbody></table></div></section>`;
+  $('#ozK').onchange = e => { OZ.kapsam = e.target.value; render(); };
+  $('#ozKur').onchange = e => { OZ.kurucu = e.target.value; render(); };
+  $('#ozB').onchange = e => { OZ.bayrak = e.target.value; render(); };
+  $('#ozS').onchange = e => { OZ.sev = e.target.value; render(); };
+  $('#btnOzX').onclick = () => {
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, sheet(F.map(f => ({ 'Fon Kodu': f.k, 'Fon Adı': funds[f.k]?.ad || '', 'Kurucu': kurucuOf(funds[f.k]?.ad), 'Önem': SEV[f.sev], 'Bayrak': f.tip, 'Açıklama': f.metin })), [10, 50, 22, 8, 16, 90]), 'Bayraklar');
+    XLSX.utils.book_append_sheet(wb, sheet(D.map(({ k, d }) => ({ 'Fon Kodu': k, 'Fon Adı': funds[k].ad, 'Önceki Rapor': d.snap.donem, 'Son Rapor': funds[k].rapor?.donem || '', 'Gün': d.gun, 'Devir (%)': +d.devir.toFixed(2), 'Yeni Kalem': d.rows.filter(o => o.durum === 'yeni' && !NONSEC.has(o.tur)).length, 'Çıkan Kalem': d.rows.filter(o => o.durum === 'cikti' && !NONSEC.has(o.tur)).length })).sort((a, b) => b['Devir (%)'] - a['Devir (%)']), [10, 50, 14, 14, 6, 10, 10, 10]), 'Fon değişimleri');
+    XLSX.utils.book_append_sheet(wb, sheet(VL.map(v => ({ 'Varlık Kodu': v.kod, 'Varlık Adı': v.ad, 'ISIN': v.isin, 'Kalem Türü': v.tur, 'Giren Fon': v.giren.length, 'Çıkan Fon': v.cikan.length, 'Girenler': v.giren.join(', '), 'Çıkanlar': v.cikan.join(', ') })).sort((a, b) => (b['Giren Fon'] + b['Çıkan Fon']) - (a['Giren Fon'] + a['Çıkan Fon'])), [12, 40, 15, 24, 10, 10, 50, 50]), 'Varlık giriş-çıkış');
+    XLSX.writeFile(wb, `degisim_ozeti_${(DB.guncelleme || '').slice(0, 10)}.xlsx`);
+  };
+  bindLinks(out);
+}
+
+// varlık görünümü: önceki rapora göre bu varlığa giren / çıkan / artıran / azaltan fonlar
+function renderAssetMoves(out, key) {
+  if (!GEC) return;
+  const M = [];
+  for (const fon of Object.keys(funds)) {
+    const snap = aylikSnap(fon); if (!snap) continue;
+    const cur = byFund.get(fon) || []; if (!cur.length) continue;
+    const w1 = sum(cur.filter(r => r.key === key).map(r => r.oran)), w0 = sum(snap.rows.filter(r => r.key === key).map(r => r.oran));
+    if (Math.abs(w1 - w0) < 0.01) continue;
+    const d = diff(fon, snap); if (d?.supheli) continue;
+    M.push({ fon, w0, w1, d: w1 - w0, donem: snap.donem });
+  }
+  if (!M.length) return;
+  const g = { giren: M.filter(m => m.w0 < 0.005), cikan: M.filter(m => m.w1 < 0.005), artiran: M.filter(m => m.w0 >= 0.005 && m.w1 >= 0.005 && m.d > 0), azaltan: M.filter(m => m.w0 >= 0.005 && m.w1 >= 0.005 && m.d < 0) };
+  const t = (h, L) => `<div><h3>${h} <span class="dim">(${L.length})</span></h3><div class="tablewrap"><table class="mini"><thead><tr><th>Fon</th><th class="num">Önce</th><th class="num">Şimdi</th><th class="num">Fark</th></tr></thead><tbody>${L.sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 15).map(m => `<tr><td>${fonLink(m.fon)} <span class="name dim">${esc((funds[m.fon]?.ad || '').slice(0, 30))}</span></td><td class="num">${fmtPct(m.w0)}</td><td class="num">${fmtPct(m.w1)}</td><td class="num ${m.d > 0 ? 'up' : 'down'}">${fmtD(m.d)}</td></tr>`).join('') || '<tr><td colspan="4" class="dim">Yok</td></tr>'}</tbody></table></div></div>`;
+  const sec = document.createElement('section'); sec.className = 'result';
+  sec.innerHTML = `<div class="rhead"><div><h2 style="font-size:19px">Önceki rapora göre fon hareketleri</h2><p>Her fonun son raporu bir önceki ayla (haftalık raporlayanlarda ~4 hafta öncesiyle) karşılaştırıldı. Net: ${g.giren.length} fon girdi, ${g.cikan.length} fon çıktı, ${g.artiran.length} fon artırdı, ${g.azaltan.length} fon azalttı.</p></div></div>
+    <div class="cols4">${t('Yeni giren fonlar', g.giren)}${t('Çıkan fonlar', g.cikan)}${t('Artıran fonlar', g.artiran)}${t('Azaltan fonlar', g.azaltan)}</div>`;
+  out.appendChild(sec); bindLinks(sec);
+}
+// ================= /ANALİZ =================
 
 let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),3500); }
 loadData();

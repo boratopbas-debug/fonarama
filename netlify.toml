@@ -13,6 +13,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/gecmis"
+  to = "/.netlify/functions/gecmis"
+  status = 200
+
+[[redirects]]
   from = "/api/status"
   to = "/.netlify/functions/status"
   status = 200
