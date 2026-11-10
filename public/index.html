@@ -618,7 +618,9 @@ function stats(fon, list = byFund.get(fon) || [], tefas = DB.dagilim?.[fon]?.d) 
 }
 
 // ---------- aydan aya fark ----------
-function prevSnaps(fon) { return (GEC?.[fon] || []); }
+function prevSnaps(fon) { // okuma kalitesi kötü (toplamı %60 altı / %115 üstü) önceki raporları karşılaştırmaya alma
+  return (GEC?.[fon] || []).filter(sn => { if (sn._t == null) sn._t = sum(sn.rows.filter(r => r.tur !== KT.tur).map(r => r.oran)); return sn._t >= 60 && sn._t <= 115; });
+}
 function diff(fon, snap, curList = byFund.get(fon) || []) {
   if (!snap) return null;
   const c = agg(curList), p = agg(snap.rows);
@@ -634,7 +636,7 @@ function diff(fon, snap, curList = byFund.get(fon) || []) {
   const turD = {};
   for (const o of out) turD[o.tur] = (turD[o.tur] || 0) + o.d;
   const nC = [...c.values()].filter(x => !NONSEC.has(x.tur)).length, nP = [...p.values()].filter(x => !NONSEC.has(x.tur)).length;
-  const supheli = nP >= 5 && nC < 0.4 * nP && devir > 60; // satırların çoğu kaybolmuş: büyük ihtimalle rapor formatı / okuma sorunu
+  const supheli = (nP >= 5 && nC < 0.4 * nP && devir > 60) || devir > 100; // devir %100'ü aşamaz: aşıyorsa okuma sorunu // satırların çoğu kaybolmuş: büyük ihtimalle rapor formatı / okuma sorunu
   return { snap, rows: out, devir, turD, supheli, nC, nP, gun: Math.round((new Date(funds[fon]?.rapor?.eskiVeri?.yayin || funds[fon]?.rapor?.yayin) - new Date(snap.yayin)) / 864e5) };
 }
 // ~1 ay önceki rapor (haftalık raporlayanlarda 4 hafta öncesine en yakın), yoksa bir önceki
