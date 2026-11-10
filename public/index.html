@@ -314,10 +314,11 @@ function neden(k){
   if(r.bekleyen) return `Son rapor (${r.bekleyen.donem}) KAP'tan henüz indirilemedi; gösterilen veri ${r.donem} raporundan, sonraki yenilemede tekrar denenecek`;
   if(r.status==='hata' && DB.satirlar?.[k]?.length) return `Son rapor (${r.donem}) KAP'tan indirilemedi; gösterilen veri bir önceki rapordan, sonraki yenilemede tekrar denenecek`;
   if(r.status==='taranmis') return 'Rapor taranmış görüntü, içinde okunabilir metin yok';
-  if(r.status==='ek_yok') return 'KAP bildiriminde rapor dosyası yok';
+  if(r.status==='ek_yok') return 'KAP bildiriminde rapor dosyası yok: fon nitelikli yatırımcıya satıldığı için portföy dağılım raporu yayımlamaktan muaf (bildirimde bu not var), içerik kamuya açık değil';
   if(r.status==='hata') return 'KAP dosyayı vermedi ('+(r.hata||'bağlantı hatası').slice(0,60)+'), sonraki yenilemede tekrar denenecek';
   if(r.status==='okunamadi') return 'Rapor dosyası var ama tablo formatı tanınmadı';
   if(r.sonTaranmis) return `Son rapor (${r.sonTaranmis.donem}) taranmış görüntü; gösterilen veri ${r.eskiVeri?.donem||r.donem} raporundan${r.ocr||r.eskiVeri?.ocr?' (OCR ile okundu)':''}`;
+  if(r.grupDuzeyi) return 'Fon raporunda kalem detayı yok, sadece varlık grubu toplamları yayımlanmış (grup ağırlıkları gösteriliyor)';
   if(r.kalite==='iyi') return (r.ocr?'Taranmış rapor, OCR ile okundu':'Tam okundu')+' (toplam %'+fmtPct(r.toplamOran)+')';
   if(r.ocr) return 'Taranmış rapor, OCR ile kısmen okundu (toplam %'+fmtPct(r.toplamOran)+'); bazı satırlar eksik olabilir';
   if(r.kalite==='fazla') return 'Okunan ağırlıklar toplamı %'+fmtPct(r.toplamOran)+', bazı satırlar iki kez sayılmış olabilir';
@@ -436,7 +437,7 @@ function render(){
     summary = `${esc(rp.donem||'')} raporu, KAP'ta ${fmtDT(rp.yayin)} tarihinde yayımlandı. ${R.length} kalem, toplam ağırlık %${fmtPct(tw)}${f.buyukluk?`, fon büyüklüğü ${fmtTL(f.buyukluk)} TL`:''}. ${rp.idx?`<a href="${kapLink(rp.idx)}" target="_blank" rel="noopener">Raporu KAP'ta aç</a>`:''}${rp.kalite&&rp.kalite!=='iyi'?` <span class="flag">${KAL[rp.kalite]}</span>`:''}`;
     cols = [['kod','Kod'],['ad','Varlık'],['isin','ISIN'],['tur','Kalem türü'],['turHam','Raporda geçen tür'],['deger','Değer (TL)','num'],['oran','Ağırlık %','num']];
     if(!rp.idx || !(DB.satirlar?.[current.key]?.length)) summary = `${esc(neden(current.key))}.${f.buyukluk?` Fon büyüklüğü ${fmtTL(f.buyukluk)} TL.`:''}${rp.idx?` <a href="${kapLink(rp.idx)}" target="_blank" rel="noopener">Bildirimi KAP'ta aç</a>`:''}`;
-    else if(rp.kalite!=='iyi' || rp.ocr || rp.sonTaranmis || rp.bekleyen || rp.status==='hata') summary += ` <span class="dim">${esc(neden(current.key))}.</span>`;
+    else if(rp.kalite!=='iyi' || rp.ocr || rp.grupDuzeyi || rp.sonTaranmis || rp.bekleyen || rp.status==='hata') summary += ` <span class="dim">${esc(neden(current.key))}.</span>`;
   }
   const cell=(r,k)=>{
     if(k==='oran') return `<div class="w"><span>${fmtPct(r.oran)}</span><span class="bartrack"><span class="bar" style="width:${Math.max(2,Math.abs(r.oran)/maxW*100)}%"></span></span></div>`;
@@ -601,7 +602,7 @@ function stats(fon, list = byFund.get(fon) || [], tefas = DB.dagilim?.[fon]?.d) 
   // active share (yerli hisse kısmı, BIST 100 fonuna göre)
   let as = null, disi = null;
   const B = bench();
-  if (hisTR >= 20 && B.size && fon !== BENCH_FON) {
+  if (hisTR >= 20 && B.size && fon !== BENCH_FON && !funds[fon]?.rapor?.grupDuzeyi) {
     const eq = a.filter(x => x.tur === KT.hisTR && x.w > 0), te = sum(eq.map(x => x.w)) || 1;
     const fw = new Map(eq.map(x => [x.secKey, x.w / te * 100]));
     const keys = new Set([...fw.keys(), ...B.keys()]);
@@ -653,7 +654,8 @@ function flags(fon) {
   const add = (sev, tip, metin) => out.push({ sev, tip, metin });
   const sepet = /FON SEPETI/.test(A);
   // tek kalem yoğunlaşması (devlet, repo, mevduat hariç)
-  if (rp?.kalite !== 'fazla') { // toplamı %100'ü aşan (yanlış okunmuş olabilecek) raporlarda ölçme
+  if (rp?.grupDuzeyi) add('b', 'Veri', 'Fon kalem detayı yayımlamıyor, sadece grup toplamları var: yoğunlaşma ve endeks ölçümleri yapılamaz');
+  else if (rp?.kalite !== 'fazla') { // toplamı %100'ü aşan (yanlış okunmuş olabilecek) raporlarda ölçme
     // borçlanma araçlarında ihraççı bazında, diğerlerinde kalem bazında
     const G = new Map();
     for (const x of s.sec) { if (sepet && FONTUR.has(x.tur)) continue; const ih = BORC.has(x.tur) ? ihracci(x) : ''; const k = ih ? 'I:' + ih : 'K:' + x.k; const g = G.get(k) || { w: 0, n: 0, x }; g.w += x.w; g.n++; G.set(k, g); }
