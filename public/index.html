@@ -7,120 +7,153 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔎</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --bg:#EDF0EF; --surface:#FFFFFF; --ink:#16233A; --muted:#5B6678; --line:#D5DBDA;
-  --accent:#7A1F2B; --bar:#2F6F6A; --bar-soft:#DCEBE9; --warn:#8A5A00; --warn-soft:#FBF0DA;
+  --bg:#F4F1EA; --surface:#FFFFFF; --surface2:#FAF8F3; --ink:#111C2B; --muted:#5E6875; --line:#E2DCCF; --line2:#EDE8DD;
+  --band:#0F1E33; --band-ink:#F3EEE2; --band-muted:#9FB0C6;
+  --accent:#0E6461; --accent-ink:#FFFFFF; --link:#0E6461;
+  --bar:#B98A2F; --bar-soft:#F1E7D0; --hover:#F7F1E3;
+  --neg:#A83A3F; --pos:#2E7D4F; --warn:#8C6400; --warn-soft:#FBEFD2;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:"Inter Tight",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --serif:"Fraunces",Georgia,serif;
+  --r:10px; --shadow:0 1px 0 rgba(17,28,43,.04),0 6px 18px -10px rgba(17,28,43,.18);
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#0F1720; --surface:#17222E; --ink:#E6EBF0; --muted:#98A4B3; --line:#2A3847;
-    --accent:#E0808C; --bar:#6FB8B0; --bar-soft:#1D3533; --warn:#E3B45C; --warn-soft:#3A2E14;
+    --bg:#0B121C; --surface:#121C29; --surface2:#0F1823; --ink:#E7ECF2; --muted:#93A1B2; --line:#223042; --line2:#1A2636;
+    --band:#08101A; --band-ink:#EDE6D6; --band-muted:#8597AD;
+    --accent:#3DB3AC; --accent-ink:#06201F; --link:#5CC8C1;
+    --bar:#D4A64A; --bar-soft:#2A2516; --hover:#172434;
+    --neg:#E07A7F; --pos:#6FC38F; --warn:#E3B45C; --warn-soft:#33290F;
+    --shadow:0 1px 0 rgba(0,0,0,.2),0 8px 22px -12px rgba(0,0,0,.6);
   }
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums}
-.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 60px}
-header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:24px}
-h1{font-size:30px;line-height:1.1;margin:0;font-weight:700;letter-spacing:-.02em}
-.sub{color:var(--muted);margin:6px 0 0;max-width:62ch}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.band{background:var(--band);color:var(--band-ink);border-bottom:3px solid var(--bar)}
+.band .wrap{padding-top:26px;padding-bottom:22px}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 22px 64px}
+header{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--bar);margin:0 0 6px}
+h1{font-family:var(--serif);font-size:clamp(30px,4.2vw,42px);line-height:1.05;margin:0;font-weight:600;letter-spacing:-.015em}
+.sub{color:var(--band-muted);margin:10px 0 0;max-width:66ch;font-size:14.5px}
 .src{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
-.status{font-size:13px;color:var(--muted);width:100%;text-align:right}
+header > .src{flex:0 1 400px}
+.status{font-size:12.5px;color:var(--muted);width:100%;text-align:right;font-family:var(--mono)}
+.band .status{color:var(--band-muted)}
 .status.busy{color:var(--bar);font-weight:600}
-.status.err{color:var(--accent)}
-button{font:inherit;font-size:14px;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;cursor:pointer}
+.status.err{color:var(--neg)}
+button{font:inherit;font-size:13.5px;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;cursor:pointer;transition:border-color .15s,background .15s}
 button:hover{border-color:var(--ink)}
-button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button.primary{color:#1a0a0d}}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button.primary:hover{filter:brightness(1.08)}
+.band button{background:transparent;color:var(--band-ink);border-color:rgba(243,238,226,.28)}
+.band button:hover{border-color:var(--band-ink)}
+.band button.primary{background:var(--bar);border-color:var(--bar);color:#1B1305}
 button:disabled{opacity:.45;cursor:not-allowed}
-:focus-visible{outline:3px solid var(--bar);outline-offset:2px}
-.mode{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:10px;background:var(--surface)}
-.mode button{border:0;border-radius:0;padding:8px 16px;color:var(--muted);background:transparent}
-.mode button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+:focus-visible{outline:2px solid var(--bar);outline-offset:2px}
+.mode{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 18px;overflow-x:auto}
+.mode button{border:0;border-radius:0;padding:10px 14px 11px;color:var(--muted);background:transparent;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;font-size:14px}
+.mode button:hover{color:var(--ink)}
+.mode button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--bar)}
 .searchbox{position:relative}
-.searchbox input{width:100%;font:inherit;font-size:clamp(22px,4vw,34px);font-weight:600;letter-spacing:-.01em;padding:16px 18px;border:2px solid var(--ink);border-radius:12px;background:var(--surface);color:var(--ink)}
-.searchbox input::placeholder{color:var(--muted);font-weight:500}
-.sugg{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:10px;z-index:20;max-height:360px;overflow:auto;box-shadow:0 12px 30px rgba(10,20,35,.18);display:none}
+.searchbox input{width:100%;font:inherit;font-size:clamp(20px,3.4vw,28px);font-weight:500;letter-spacing:-.01em;padding:15px 18px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.searchbox input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent),var(--shadow)}
+.searchbox input::placeholder{color:var(--muted);font-weight:400}
+.sugg{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:10px;z-index:20;max-height:380px;overflow:auto;box-shadow:0 16px 40px -12px rgba(10,20,35,.28);display:none}
 .sugg.open{display:block}
-.sugg div{padding:10px 14px;display:flex;justify-content:space-between;gap:12px;cursor:pointer;border-bottom:1px solid var(--line)}
+.sugg div{padding:10px 14px;display:flex;justify-content:space-between;gap:12px;cursor:pointer;border-bottom:1px solid var(--line2)}
 .sugg div:last-child{border-bottom:0}
-.sugg div[aria-selected="true"],.sugg div:hover{background:var(--bar-soft)}
-.sugg small{color:var(--muted);white-space:nowrap}
-.filters{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:12px 0 0;font-size:14px;color:var(--muted)}
-select{font:inherit;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.sugg div b{font-family:var(--mono);font-weight:600;font-size:13.5px;margin-right:4px}
+.sugg div[aria-selected="true"],.sugg div:hover{background:var(--hover)}
+.sugg small{color:var(--muted);white-space:nowrap;font-family:var(--mono);font-size:12px}
+.filters{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin:12px 0 0;font-size:13.5px;color:var(--muted)}
+select{font:inherit;font-size:13.5px;padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
 .chk{display:flex;gap:6px;align-items:center}
-.result{margin-top:28px}
+input[type=checkbox]{accent-color:var(--accent)}
+.result{margin-top:30px}
 .rhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:12px}
-.rhead h2{margin:0;font-size:24px;letter-spacing:-.01em}
-.rhead h2 span{font-size:18px;font-weight:500;color:var(--muted)}
-.rhead p{margin:2px 0 0;color:var(--muted);max-width:75ch}
-.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.rhead h2{margin:0;font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-.01em}
+.rhead h2 span{font-family:var(--sans);font-size:17px;font-weight:500;color:var(--muted);margin-left:4px}
+.rhead p{margin:4px 0 0;color:var(--muted);max-width:80ch;font-size:14px}
+.rhead p a{color:var(--link);font-weight:600;text-decoration:none}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
 table{border-collapse:collapse;width:100%;min-width:720px}
-th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
-th{font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap;background:var(--surface)}
-th.num,td.num{text-align:right;white-space:nowrap}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--line2);vertical-align:middle}
+th{font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap;background:var(--surface2);border-bottom:1px solid var(--line)}
+th.num,td.num{text-align:right;white-space:nowrap;font-family:var(--mono);font-size:13.5px}
+th.num{font-family:var(--sans);font-size:11.5px}
 tr:last-child td{border-bottom:0}
-tbody tr:hover{background:var(--bar-soft)}
-td a{color:var(--accent);font-weight:600;text-decoration:none;cursor:pointer}
-td a:hover{text-decoration:underline}
-td.name{max-width:340px}
+tbody tr:hover{background:var(--hover)}
+td a{color:var(--link);font-weight:600;text-decoration:none;cursor:pointer}
+td a:hover{text-decoration:underline;text-underline-offset:3px}
+td.name{max-width:360px}
+tr.pd td{color:var(--muted);background:var(--surface2);font-style:italic}
 .w{display:flex;align-items:center;gap:10px;justify-content:flex-end}
-.bar{height:8px;border-radius:4px;background:var(--bar);min-width:2px}
-.bartrack{width:110px;background:var(--bar-soft);border-radius:4px;height:8px;display:flex}
+.bar{height:6px;border-radius:3px;background:var(--bar);min-width:2px}
+.bar.neg{background:var(--neg)}
+.bartrack{width:110px;background:var(--bar-soft);border-radius:3px;height:6px;display:flex}
 .dim{color:var(--muted);font-size:13px}
-.flag{display:inline-block;font-size:12px;padding:1px 7px;border-radius:6px;background:var(--warn-soft);color:var(--warn);white-space:nowrap}
-.empty{margin-top:36px;padding:32px;border:2px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted)}
-.empty h3{color:var(--ink);margin:0 0 6px;font-size:18px}
-details.cov{margin-top:40px;color:var(--muted);font-size:14px}
+.flag{display:inline-block;font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:5px;background:var(--warn-soft);color:var(--warn);white-space:nowrap}
+.empty{margin-top:36px;padding:40px 32px;border:1px dashed var(--line);border-radius:14px;text-align:center;color:var(--muted);background:var(--surface2)}
+.empty h3{color:var(--ink);margin:0 0 6px;font-family:var(--serif);font-weight:600;font-size:21px;text-transform:none;letter-spacing:0}
+.empty a{color:var(--link)}
+details.cov{margin-top:44px;color:var(--muted);font-size:14px;border-top:1px solid var(--line);padding-top:18px}
 details.cov summary{cursor:pointer;font-weight:600;color:var(--ink)}
 details.cov table{min-width:560px;font-size:13px}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
+details.cov a{color:var(--link)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--band);color:var(--band-ink);padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50;border-left:3px solid var(--bar)}
 .toast.show{opacity:1}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:16px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.tl{font-size:12px;color:var(--muted);font-weight:600}
-.tv{font-size:22px;font-weight:700;letter-spacing:-.01em;margin-top:2px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:10px;margin-bottom:18px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--bar);opacity:.7}
+.tl{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.07em;text-transform:uppercase}
+.tv{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-.02em;margin-top:4px}
 .th{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .cols4{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-h3{font-size:15px;margin:0 0 8px}
+h3{font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink);margin:0 0 8px}
+h3 .dim{text-transform:none;letter-spacing:0;font-weight:400}
 table.mini{min-width:0;font-size:13.5px}
 table.mini td,table.mini th{padding:6px 10px}
 table.mini .bartrack{width:70px}
-.up{color:var(--bar);font-weight:600}
-.down{color:var(--accent);font-weight:600}
+.up{color:var(--pos);font-weight:600}
+.down{color:var(--neg);font-weight:600}
 .chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
 .chip{display:inline-flex;gap:6px;align-items:center;font-size:13px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
-.chip.up{color:var(--bar)} .chip.down{color:var(--accent)}
-.chip.sel{font-weight:600;padding:4px 6px 4px 12px}
+.chip.up{color:var(--pos)} .chip.down{color:var(--neg)}
+.chip.sel{font-weight:600;padding:4px 6px 4px 12px;font-family:var(--mono)}
+.chip.sel .dim{font-family:var(--sans)}
 .chip .x{border:0;padding:0 6px;font-size:16px;line-height:1;background:transparent;color:var(--muted)}
 .searchbox.inl{display:inline-block;min-width:260px}
-.searchbox.inl input{font-size:15px;font-weight:500;padding:8px 12px;border-width:1px}
+.searchbox.inl input{font-size:15px;font-weight:500;padding:8px 12px;box-shadow:none}
 ul.flags{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-ul.flags li{background:var(--surface);border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:9px 12px;font-size:14px}
+ul.flags li{background:var(--surface);border:1px solid var(--line);border-left-width:3px;border-radius:9px;padding:9px 12px;font-size:14px}
 ul.flags li b{margin-right:6px}
-.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:1px 8px;border-radius:6px;margin-right:8px;background:var(--bar-soft);color:var(--bar);white-space:nowrap}
-li.sev-y{border-left-color:var(--accent)} li.sev-o{border-left-color:var(--warn)} li.sev-b{border-left-color:var(--line)}
-.sev-y .pill,.pill.sev-y{background:var(--accent);color:#fff}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:5px;margin-right:8px;background:var(--bar-soft);color:var(--bar);white-space:nowrap}
+li.sev-y{border-left-color:var(--neg)} li.sev-o{border-left-color:var(--warn)} li.sev-b{border-left-color:var(--line)}
+.sev-y .pill,.pill.sev-y{background:var(--neg);color:#fff}
 .sev-o .pill,.pill.sev-o{background:var(--warn-soft);color:var(--warn)}
-.note{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px}
+.note{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--bar);border-radius:var(--r);padding:10px 16px}
 .note ul{margin:0;padding-left:18px} .note li{margin:4px 0}
-.note a,.chips a,ul.flags a,.empty a{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none}
-#btnIzle[aria-pressed="true"]{border-color:var(--warn);color:var(--warn)}
-@media (max-width:760px){.cols,.cols4{grid-template-columns:1fr}.mode{display:flex;flex-wrap:wrap}.mode button{flex:1 1 auto}}
-@media (max-width:640px){.status{text-align:left}.src{justify-content:flex-start}}
-@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+.note a,.chips a,ul.flags a,.empty a{color:var(--link);font-weight:600;cursor:pointer;text-decoration:none}
+#btnIzle[aria-pressed="true"]{border-color:var(--bar);color:var(--bar)}
+@media (max-width:760px){.cols,.cols4{grid-template-columns:1fr}}
+@media (max-width:640px){.status{text-align:left}.src{justify-content:flex-start}.band .wrap{padding-top:20px}}
+@media (prefers-reduced-motion: reduce){.toast,button{transition:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="band"><div class="wrap">
   <header>
     <div>
+      <p class="eyebrow">Fonara · KAP portföy dağılım raporları</p>
       <h1>Hangi fonda ne var?</h1>
       <p class="sub">ISIN, hisse kodu ya da şirket adı yaz; TEFAS'taki yatırım fonlarından (banka şubesinden satılanlar dahil) hangilerinin tuttuğunu ve fon içindeki ağırlığını gör. Fon sayfasında içeriğin röntgeni, kırmızı bayraklar ve önceki rapora göre değişim; ayrıca fonları karşılaştırma ve tüm fonlarda değişim özeti. Kaynak: fonların KAP'taki portföy dağılım raporları.</p>
     </div>
@@ -130,6 +163,8 @@ li.sev-y{border-left-color:var(--accent)} li.sev-o{border-left-color:var(--warn)
       <div class="status" id="status">Veriler yükleniyor…</div>
     </div>
   </header>
+</div></div>
+<div class="wrap">
 
   <div class="mode" role="group" aria-label="Arama türü">
     <button id="mAsset" aria-pressed="true">Varlık → fonlar</button>
@@ -178,7 +213,7 @@ const KT = {
   ebTR:'Eurobond Türk', ebYB:'Yabancı Borçlanma Aracı',
   vdmk:'Varlığa Dayalı Menkul Kıymet', repo:'Repo / Ters Repo', tpp:'Takasbank Para Piyasası',
   mev:'Mevduat', kh:'Katılım Hesabı', km:'Kıymetli Maden',
-  tur:'Türev', tem:'Türev Teminatı', dig:'Diğer'
+  tur:'Türev', tem:'Türev Teminatı', dig:'Diğer', pd:'Portföy dışı (nakit, alacak, borç)'
 };
 const fold = s => String(s ?? '').toLocaleUpperCase('tr')
   .replace(/[İI]/g,'I').replace(/Ş/g,'S').replace(/Ğ/g,'G').replace(/Ü/g,'U').replace(/Ö/g,'O').replace(/Ç/g,'C').replace(/\?/g,'O');
@@ -189,6 +224,7 @@ function normTur(raw, isin, kod, ad){
   const T = fold(raw), K = fold(kod), A = fold(ad), I = String(isin||'').toUpperCase();
   const p2 = I.slice(0,2), p3 = I.slice(0,3), yerli = p2==='TR', yabanci = !!I && !yerli;
   const yabSoz = has(T,/YABANCI|\bYP\b/);
+  if(T==='PORTFOY DISI') return KT.pd; // IV. tablodan eklenen hazır değerler / alacaklar / borçlar
 
   // 1) ISIN'in değil satırın kendisinin belirlediği kalemler (repo satırında teminat tahvilin ISIN'i yazıyor)
   if(has(T,/\b[TB]PP\b/) || /^[TB]PP$/.test(K) || has(A,/\b[TB]PP\b|TAKASBANK PARA/)) return KT.tpp;
@@ -291,6 +327,7 @@ function index(){
     for(const raw of list){
       const r = normRow(fon, raw); const {key, isin, kod, ad} = r;
       rows.push(r); fr.push(r);
+      if(r.tur===KT.pd) continue; // nakit/alacak/borç: varlık aramasına girmez
       let s = secs.get(key);
       if(!s){ s={key, isin, kod, names:{}, rows:[]}; secs.set(key,s); }
       if(!s.kod && kod) s.kod=kod;
@@ -310,16 +347,18 @@ function neden(k){
     if(A.includes('SERBEST')) return 'Serbest fon: KAP\'ta son 4 ayda rapor yok (yükümlülük sadece TEFAS\'ta işlem görenler için, 28.08.2026\'dan beri haftalık)';
     return 'KAP\'ta son 4 ayda portföy dağılım raporu yok (yeni kurulmuş olabilir)';
   }
-  if(r.eskiVeri && !r.sonTaranmis && /^(taranmis|okunamadi|ek_yok)$/.test(r.status)) return `Son rapor (${r.donem}) ${r.status==='taranmis'?'taranmış görüntü':r.status==='ek_yok'?'dosyasız yayımlanmış':'okunamadı'}; gösterilen veri ${r.eskiVeri.donem} raporundan`;
+  if(r.eskiVeri && !r.sonTaranmis && /^(taranmis|okunamadi|ek_yok|muaf|rapor_degil)$/.test(r.status)) return `Son rapor (${r.donem}) ${r.status==='taranmis'?'taranmış görüntü':r.status==='ek_yok'||r.status==='muaf'?'dosyasız yayımlanmış':r.status==='rapor_degil'?'portföy raporu değil':'okunamadı'}; gösterilen veri ${r.eskiVeri.donem} raporundan`;
   if(r.bekleyen) return `Son rapor (${r.bekleyen.donem}) KAP'tan henüz indirilemedi; gösterilen veri ${r.donem} raporundan, sonraki yenilemede tekrar denenecek`;
   if(r.status==='hata' && DB.satirlar?.[k]?.length) return `Son rapor (${r.donem}) KAP'tan indirilemedi; gösterilen veri bir önceki rapordan, sonraki yenilemede tekrar denenecek`;
   if(r.status==='taranmis') return 'Rapor taranmış görüntü, içinde okunabilir metin yok';
+  if(r.status==='muaf') return 'Fon sadece nitelikli yatırımcıya satıldığı için portföy dağılım raporu yayımlamaktan muaf (KAP bildiriminde bu not var); içerik kamuya açık değil';
+  if(r.status==='rapor_degil') return 'KAP\'a portföy dağılım raporu yerine başka bir belge (performans sunum raporu) yüklenmiş';
   if(r.status==='ek_yok') return 'KAP bildiriminde rapor dosyası yok: fon nitelikli yatırımcıya satıldığı için portföy dağılım raporu yayımlamaktan muaf (bildirimde bu not var), içerik kamuya açık değil';
   if(r.status==='hata') return 'KAP dosyayı vermedi ('+(r.hata||'bağlantı hatası').slice(0,60)+'), sonraki yenilemede tekrar denenecek';
   if(r.status==='okunamadi') return 'Rapor dosyası var ama tablo formatı tanınmadı';
   if(r.sonTaranmis) return `Son rapor (${r.sonTaranmis.donem}) taranmış görüntü; gösterilen veri ${r.eskiVeri?.donem||r.donem} raporundan${r.ocr||r.eskiVeri?.ocr?' (OCR ile okundu)':''}`;
   if(r.grupDuzeyi) return 'Fon raporunda kalem detayı yok, sadece varlık grubu toplamları yayımlanmış (grup ağırlıkları gösteriliyor)';
-  if(r.kalite==='iyi') return (r.ocr?'Taranmış rapor, OCR ile okundu':'Tam okundu')+' (toplam %'+fmtPct(r.toplamOran)+')';
+  if(r.kalite==='iyi') return (r.ocr?'Taranmış rapor, OCR ile okundu':'Tam okundu')+' (toplam %'+fmtPct(r.toplamOran)+')'+(r.portfoyDisi?'; nakit, alacak ve borçlar raporun fon toplam değeri tablosundan eklendi':'');
   if(r.ocr) return 'Taranmış rapor, OCR ile kısmen okundu (toplam %'+fmtPct(r.toplamOran)+'); bazı satırlar eksik olabilir';
   if(r.kalite==='fazla') return 'Okunan ağırlıklar toplamı %'+fmtPct(r.toplamOran)+', bazı satırlar iki kez sayılmış olabilir';
   return 'Kısmi okundu (toplam %'+fmtPct(r.toplamOran)+'), bazı satırlar kaçmış olabilir';
@@ -416,9 +455,10 @@ function render(){
     const ns=secs.size, nf=fundList.length;
     out.innerHTML = `<div class="empty"><h3>${mode==='asset'?'Bir varlık ara':'Bir fon ara'}</h3><p>${mode==='asset'?`${ns.toLocaleString('tr-TR')} farklı varlık`:`${nf.toLocaleString('tr-TR')} fon`} aranabilir.${mode==='fund'?' Fon sayfasında röntgen, kırmızı bayraklar ve önceki rapora göre değişim de var.':''}</p>${mode==='fund'&&IZLE.size?`<p>İzleme listen: ${[...IZLE].filter(k=>funds[k]).map(k=>`<a data-fund="${esc(k)}" tabindex="0">${esc(k)}</a>`).join(', ')}</p>`:''}</div>`; bindLinks(out); return;
   }
-  const R = resultRows().slice();
+  let R = resultRows().slice();
   R.forEach(r=>{ const f=funds[r.fon]||{}; r.fonAdi=f.ad||''; r.donem=f.rapor?.donem||''; r.buyukluk=f.buyukluk; });
   R.sort((a,b)=>{ const va=a[sortKey], vb=b[sortKey]; if(typeof va==='number'||typeof vb==='number') return ((va??-1e18)-(vb??-1e18))*sortDir; return String(va??'').localeCompare(String(vb??''),'tr')*sortDir; });
+  R = R.filter(r=>r.tur!==KT.pd).concat(R.filter(r=>r.tur===KT.pd)); // nakit/alacak/borç satırları en altta
   const maxW = Math.max(...R.map(r=>Math.abs(r.oran)),0.0001);
   const totalMV = R.reduce((s,r)=>s+(r.deger||0),0);
   let title, summary, cols;
@@ -434,13 +474,13 @@ function render(){
     const f = funds[current.key]||{}; const rp=f.rapor||{};
     title = `${esc(current.key)} <span>${esc(f.ad||'')}</span>`;
     const tw = R.reduce((a,r)=>a+r.oran,0);
-    summary = `${esc(rp.donem||'')} raporu, KAP'ta ${fmtDT(rp.yayin)} tarihinde yayımlandı. ${R.length} kalem, toplam ağırlık %${fmtPct(tw)}${f.buyukluk?`, fon büyüklüğü ${fmtTL(f.buyukluk)} TL`:''}. ${rp.idx?`<a href="${kapLink(rp.idx)}" target="_blank" rel="noopener">Raporu KAP'ta aç</a>`:''}${rp.kalite&&rp.kalite!=='iyi'?` <span class="flag">${KAL[rp.kalite]}</span>`:''}`;
+    summary = `${esc(rp.donem||'')} raporu, KAP'ta ${fmtDT(rp.yayin)} tarihinde yayımlandı. ${R.filter(r=>r.tur!==KT.pd).length} kalem, toplam ağırlık %${fmtPct(tw)}${f.buyukluk?`, fon büyüklüğü ${fmtTL(f.buyukluk)} TL`:''}. ${rp.idx?`<a href="${kapLink(rp.idx)}" target="_blank" rel="noopener">Raporu KAP'ta aç</a>`:''}${rp.kalite&&rp.kalite!=='iyi'?` <span class="flag">${KAL[rp.kalite]}</span>`:''}`;
     cols = [['kod','Kod'],['ad','Varlık'],['isin','ISIN'],['tur','Kalem türü'],['turHam','Raporda geçen tür'],['deger','Değer (TL)','num'],['oran','Ağırlık %','num']];
     if(!rp.idx || !(DB.satirlar?.[current.key]?.length)) summary = `${esc(neden(current.key))}.${f.buyukluk?` Fon büyüklüğü ${fmtTL(f.buyukluk)} TL.`:''}${rp.idx?` <a href="${kapLink(rp.idx)}" target="_blank" rel="noopener">Bildirimi KAP'ta aç</a>`:''}`;
     else if(rp.kalite!=='iyi' || rp.ocr || rp.grupDuzeyi || rp.sonTaranmis || rp.bekleyen || rp.status==='hata') summary += ` <span class="dim">${esc(neden(current.key))}.</span>`;
   }
   const cell=(r,k)=>{
-    if(k==='oran') return `<div class="w"><span>${fmtPct(r.oran)}</span><span class="bartrack"><span class="bar" style="width:${Math.max(2,Math.abs(r.oran)/maxW*100)}%"></span></span></div>`;
+    if(k==='oran') return `<div class="w"><span>${fmtPct(r.oran)}</span><span class="bartrack"><span class="bar${r.oran<0?' neg':''}" style="width:${Math.max(2,Math.abs(r.oran)/maxW*100)}%"></span></span></div>`;
     if(k==='deger') return fmtTL(r.deger);
     if(k==='fon'){ const q=funds[r.fon]?.rapor?.kalite; return `<a data-fund="${esc(r.fon)}" tabindex="0">${esc(r.fon)}</a>${q&&q!=='iyi'?` <span class="flag" title="${KAL[q]}">!</span>`:''}`; }
     if(k==='kod') return r.kod? `<a data-sec="${esc(r.key)}" tabindex="0">${esc(r.kod)}</a>` : `<a data-sec="${esc(r.key)}" tabindex="0" class="dim">—</a>`;
@@ -453,7 +493,7 @@ function render(){
   out.innerHTML = `<section class="result">
     <div class="rhead"><div><h2>${title}</h2><p>${summary}</p></div><button class="primary" id="btnExport">Sonucu Excel'e aktar</button></div>
     <div class="tablewrap"><table><thead><tr>${cols.map(([k,l,c])=>`<th class="${c||''}" data-k="${k}" aria-sort="${sortKey===k?(sortDir>0?'ascending':'descending'):'none'}">${l}${sortKey===k?(sortDir>0?' ▲':' ▼'):''}</th>`).join('')}</tr></thead>
-    <tbody>${R.map(r=>`<tr>${cols.map(([k,,c])=>`<td class="${c||''}${k==='ad'||k==='fonAdi'?' name':''}">${cell(r,k)}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}" class="dim">Filtrelerle sonuç kalmadı. Minimum ağırlığı düşür veya "Sadece tam okunan raporlar"ı kapat.</td></tr>`}</tbody></table></div></section>`;
+    <tbody>${R.map(r=>`<tr${r.tur===KT.pd?' class="pd"':''}>${cols.map(([k,,c])=>`<td class="${c||''}${k==='ad'||k==='fonAdi'?' name':''}">${cell(r,k)}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${cols.length}" class="dim">Filtrelerle sonuç kalmadı. Minimum ağırlığı düşür veya "Sadece tam okunan raporlar"ı kapat.</td></tr>`}</tbody></table></div></section>`;
   out.querySelectorAll('th[data-k]').forEach(th=> th.onclick=()=>{ const k=th.dataset.k; if(sortKey===k) sortDir*=-1; else {sortKey=k; sortDir=(k==='oran'||k==='deger')?-1:1;} render(); });
   out.querySelectorAll('a[data-fund]').forEach(a=>{ const f=()=>{go('fund',a.dataset.fund);scrollTo({top:0});}; a.onclick=f; a.onkeydown=e=>{if(e.key==='Enter')f();}; });
   out.querySelectorAll('a[data-sec]').forEach(a=>{ const f=()=>{go('asset',a.dataset.sec);scrollTo({top:0});}; a.onclick=f; a.onkeydown=e=>{if(e.key==='Enter')f();}; });
@@ -484,10 +524,13 @@ function render(){
 
 // ---------- kapsam (okunamayan raporlar) ----------
 function renderCoverage(){
-  const bad = Object.entries(funds).filter(([k,f])=>!DB.satirlar?.[k]?.length || (f.rapor&&f.rapor.kalite!=='iyi')).map(([k,f])=>({k,f}));
+  const muaf = f => !f.rapor || /^(muaf|ek_yok)$/.test(f.rapor.status);
+  const all = Object.entries(funds).filter(([k,f])=>!DB.satirlar?.[k]?.length || (f.rapor&&f.rapor.kalite!=='iyi')).map(([k,f])=>({k,f}));
+  const nMuaf = all.filter(x=>muaf(x.f)).length;
+  const bad = all.filter(x=>!muaf(x.f)).concat(all.filter(x=>muaf(x.f)));
   const c=$('#cov');
-  c.innerHTML = `<summary>${bad.length.toLocaleString('tr-TR')} fonun portföy detayı eksik veya kısmi</summary>
-    <p>Her fonun neden eksik olduğu aşağıda. Raporu olmayan fonların varlık sınıfı dağılımı (TEFAS) fon sayfasında görünür.</p>
+  c.innerHTML = `<summary>${(all.length-nMuaf).toLocaleString('tr-TR')} fonun raporu okunamadı ya da kısmi okundu · ${nMuaf.toLocaleString('tr-TR')} fon rapor yayımlamıyor</summary>
+    <p>Rapor yayımlamayanlar çoğunlukla nitelikli yatırımcıya satılan serbest fonlar (yükümlülükten muaf); listenin sonunda. Bu fonların varlık sınıfı dağılımı (TEFAS) fon sayfasında görünür.</p>
     <div class="tablewrap"><table><thead><tr><th>Fon</th><th>Fon adı</th><th>Durum</th><th>Rapor</th></tr></thead><tbody>
     ${bad.sort((a,b)=>(b.f.buyukluk||0)-(a.f.buyukluk||0)).map(({k,f})=>`<tr><td><a data-fund="${esc(k)}" tabindex="0">${esc(k)}</a></td><td class="name">${esc(f.ad)}</td><td>${esc(neden(k))}</td><td>${f.rapor?.idx?`<a href="${kapLink(f.rapor.idx)}" target="_blank" rel="noopener">KAP</a>`:''}</td></tr>`).join('')}
     </tbody></table></div>`;
@@ -519,7 +562,7 @@ $('#btnExportAll').onclick=()=>{
 // (index.html içindeki ana betiğe eklenir; DB, rows, funds, secs, KT, normRow ... ile aynı kapsamda çalışır)
 let byFund = new Map(), GEC = null, GEC_YUK = null, GRUP = {}, BENCH = null;
 const statCache = new Map();
-const NONSEC = new Set([KT.repo, KT.tpp, KT.mev, KT.kh, KT.tem, KT.dig]);
+const NONSEC = new Set([KT.repo, KT.tpp, KT.mev, KT.kh, KT.tem, KT.dig, KT.pd]);
 const DEVLET = new Set([KT.dt, KT.kksK, KT.repo, KT.tpp]);
 const FONTUR = new Set([KT.fonTR, KT.fonYB, KT.byfTR, KT.byfYB]);
 const BENCH_FON = 'DZE'; // BIST 100 endeks fonu: active share ve "BIST 100 dışı" ölçümünde endeksin yerine geçer
@@ -593,7 +636,7 @@ function stats(fon, list = byFund.get(fon) || [], tefas = DB.dagilim?.[fon]?.d) 
   const ck = fon + '|' + (list === byFund.get(fon) ? 'cur' : 'x');
   if (ck.endsWith('cur') && statCache.has(ck)) return statCache.get(ck);
   const total = sum(list.map(r => r.oran));
-  const a = [...agg(list).values()];
+  const a = [...agg(list).values()].filter(x => x.tur !== KT.pd); // nakit/alacak/borç kalem sayılmaz
   const sec = a.filter(x => !NONSEC.has(x.tur) && !DEVLET.has(x.tur) && !kamuEB(x) && x.tur !== KT.km && x.tur !== KT.tur && !TOPLAM_SATIR.test(fold(x.ad))).sort((x, y) => y.w - x.w);
   const all = a.slice().sort((x, y) => y.w - x.w);
   const hhi = sum(a.filter(x => x.w > 0).map(x => (x.w / (total || 100)) ** 2));
@@ -612,7 +655,7 @@ function stats(fon, list = byFund.get(fon) || [], tefas = DB.dagilim?.[fon]?.d) 
   const fx = tefas ? sum(FX_TEFAS.map(k => tefas[k] || 0)) : sum([...FX_TUR].map(t => tur[t] || 0));
   const au = tefas ? sum(AU_TEFAS.map(k => tefas[k] || 0)) : (tur[KT.km] || 0);
   const il = iliskili(fon, list);
-  const res = { total, n: list.length, top10: sum(all.slice(0, 10).map(x => x.w)), etkin: hhi ? 1 / hhi : 0, maxSec: sec[0] || null, sec, tur, hisTR, hisYB, as, disi, fx, au, fxKaynak: tefas ? 'TEFAS' : 'rapor', il };
+  const res = { total, n: list.filter(r => r.tur !== KT.pd).length, top10: sum(all.slice(0, 10).map(x => x.w)), etkin: hhi ? 1 / hhi : 0, maxSec: sec[0] || null, sec, tur, hisTR, hisYB, as, disi, fx, au, fxKaynak: tefas ? 'TEFAS' : 'rapor', il };
   if (ck.endsWith('cur')) statCache.set(ck, res);
   return res;
 }
@@ -623,7 +666,7 @@ function prevSnaps(fon) { // okuma kalitesi kötü (toplamı %60 altı / %115 ü
 }
 function diff(fon, snap, curList = byFund.get(fon) || []) {
   if (!snap) return null;
-  const c = agg(curList), p = agg(snap.rows);
+  const c = agg(curList.filter(r => r.tur !== KT.pd)), p = agg(snap.rows.filter(r => r.tur !== KT.pd));
   const tc = sum([...c.values()].map(x => x.w)), tp = sum([...p.values()].map(x => x.w));
   const nc = tc > 80 && tc < 120 ? 100 / tc : 1, np = tp > 80 && tp < 120 ? 100 / tp : 1; // kısmi okumaları ölçekle
   const keys = new Set([...c.keys(), ...p.keys()]), out = [];
